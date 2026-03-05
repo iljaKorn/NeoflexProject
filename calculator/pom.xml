@@ -9,10 +9,10 @@
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>com.example</groupId>
-    <artifactId>NeoflexProject</artifactId>
+    <artifactId>calculator</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>NeoflexProject</name>
-    <description>NeoflexProject</description>
+    <name>calculator</name>
+    <description>calculator</description>
     <url/>
     <licenses>
         <license/>
