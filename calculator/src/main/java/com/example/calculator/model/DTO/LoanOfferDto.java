@@ -12,7 +12,7 @@ public class LoanOfferDto {
     private BigDecimal totalAmount;
     private Integer term;
     private BigDecimal monthlyPayment;
-    private BigDecimal BigDecimal;
+    private BigDecimal rate;
     private Boolean isInsuranceEnabled;
     private Boolean isSalaryClient;
 }
