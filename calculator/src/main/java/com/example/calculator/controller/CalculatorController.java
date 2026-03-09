@@ -1,7 +1,9 @@
 package com.example.calculator.controller;
 
+import com.example.calculator.model.DTO.CreditDto;
 import com.example.calculator.model.DTO.LoanOfferDto;
 import com.example.calculator.model.DTO.LoanStatementRequestDto;
+import com.example.calculator.model.DTO.ScoringDataDto;
 import com.example.calculator.service.CalculatorService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -22,7 +24,12 @@ public class CalculatorController {
     private final CalculatorService calculatorService;
 
     @PostMapping("/offers")
-    public List<LoanOfferDto> getOffers(@Valid @RequestBody LoanStatementRequestDto dto){
+    public List<LoanOfferDto> getOffers(@Valid @RequestBody LoanStatementRequestDto dto) {
         return calculatorService.getOffers(dto);
+    }
+
+    @PostMapping("/calc")
+    public CreditDto calculateCredit(@RequestBody ScoringDataDto dto) {
+        return calculatorService.calculateCredit(dto);
     }
 }

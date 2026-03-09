@@ -15,4 +15,11 @@ public class CalculatorControllerAdvice {
         errorMessage.setDescription(e.getMessage());
         return errorMessage;
     }
+
+    @ExceptionHandler(ScoringException.class)
+    ErrorMessage handleScoringException(ScoringException e) {
+        ErrorMessage errorMessage = new ErrorMessage();
+        errorMessage.setDescription(e.getMessage());
+        return errorMessage;
+    }
 }

@@ -1,8 +1,11 @@
 package com.example.calculator.service;
 
 import com.example.calculator.exception.PreScoringException;
+import com.example.calculator.exception.ScoringException;
+import com.example.calculator.model.DTO.CreditDto;
 import com.example.calculator.model.DTO.LoanOfferDto;
 import com.example.calculator.model.DTO.LoanStatementRequestDto;
+import com.example.calculator.model.DTO.ScoringDataDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -18,7 +21,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class CalculatorService {
 
-    private final PreScoringService preScoringService;
+    private final ScoringService scoringService;
 
     @Value("${bank.rate}")
     private BigDecimal START_RATE;
@@ -27,7 +30,7 @@ public class CalculatorService {
     private static final BigDecimal SALARY_DISCOUNT = new BigDecimal("1.0");
 
     public List<LoanOfferDto> getOffers(LoanStatementRequestDto dto) {
-        if (!preScoringService.preScoring(dto)){
+        if (!scoringService.preScoring(dto)) {
             throw new PreScoringException("Данные не прошли прескоринг");
         }
 
@@ -36,14 +39,14 @@ public class CalculatorService {
 
         BigDecimal clientRate = START_RATE;
         BigDecimal totalAmount = dto.getAmount();
-        for(boolean isInsuranceEnabled : options){
-            for (boolean isSalaryClient : options){
-                if (isInsuranceEnabled){
+        for (boolean isInsuranceEnabled : options) {
+            for (boolean isSalaryClient : options) {
+                if (isInsuranceEnabled) {
                     totalAmount = totalAmount.add(INSURANCE_PRICE);
                     clientRate = clientRate.subtract(INSURANCE_DISCOUNT);
                 }
-                if (isSalaryClient){
-                    clientRate = clientRate.subtract(SALARY_DISCOUNT);;
+                if (isSalaryClient) {
+                    clientRate = clientRate.subtract(SALARY_DISCOUNT);
                 }
 
                 BigDecimal monthlyPayment = calculateMonthlyPayment(totalAmount, clientRate, dto.getTerm());
@@ -70,8 +73,8 @@ public class CalculatorService {
         return offers;
     }
 
-    private BigDecimal calculateMonthlyPayment(BigDecimal totalAmount, BigDecimal rate, Integer term){
-        // формула расчёта
+    private BigDecimal calculateMonthlyPayment(BigDecimal totalAmount, BigDecimal rate, Integer term) {
+        // формула расчёта аннуиетного платежа
         // Платеж = Сумма кредита × (мес.ставка × (1 + мес.ставка)^Срок) / ((1 + мес.ставка)^Срок - 1)
         BigDecimal monthlyRate = rate.divide(new BigDecimal("1200"), 10, RoundingMode.HALF_UP);
         BigDecimal onePlusRate = BigDecimal.ONE.add(monthlyRate);
@@ -82,5 +85,15 @@ public class CalculatorService {
         BigDecimal annuityCoefficient = numerator.divide(denominator, 10, RoundingMode.HALF_UP);
 
         return totalAmount.multiply(annuityCoefficient).setScale(2, RoundingMode.HALF_UP);
+    }
+
+    public CreditDto calculateCredit(ScoringDataDto dto) {
+        int scoreRate = scoringService.scoring(dto);
+        if (scoreRate == 0) {
+            throw new ScoringException("Данные не прошли скоринг");
+        }
+        BigDecimal clientRate = START_RATE.add(new BigDecimal(String.valueOf(scoreRate)));
+
+        return null;
     }
 }
