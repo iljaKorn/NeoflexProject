@@ -2,16 +2,15 @@ package com.example.calculator.service;
 
 import com.example.calculator.exception.PreScoringException;
 import com.example.calculator.exception.ScoringException;
-import com.example.calculator.model.DTO.CreditDto;
-import com.example.calculator.model.DTO.LoanOfferDto;
-import com.example.calculator.model.DTO.LoanStatementRequestDto;
-import com.example.calculator.model.DTO.ScoringDataDto;
+import com.example.calculator.model.DTO.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -73,9 +72,41 @@ public class CalculatorService {
         return offers;
     }
 
+    public CreditDto calculateCredit(ScoringDataDto dto) {
+//        int scoreRate = scoringService.scoring(dto);
+//        if (scoreRate == 0) {
+//            throw new ScoringException("Данные не прошли скоринг");
+//        }
+        int scoreRate = -3;
+        BigDecimal clientRate = START_RATE.add(new BigDecimal(scoreRate));
+        BigDecimal amount = dto.getAmount();
+
+        if (dto.getIsInsuranceEnabled()) {
+            amount = amount.add(INSURANCE_PRICE);
+            clientRate = clientRate.subtract(INSURANCE_DISCOUNT);
+        }
+        if (dto.getIsSalaryClient()) {
+            clientRate = clientRate.subtract(SALARY_DISCOUNT);
+        }
+
+        BigDecimal monthlyPayment = calculateMonthlyPayment(amount, clientRate, dto.getTerm());
+
+        CreditDto creditDto = new CreditDto();
+        creditDto.setAmount(dto.getAmount());
+        creditDto.setTerm(dto.getTerm());
+        creditDto.setMonthlyPayment(monthlyPayment);
+        creditDto.setRate(clientRate);
+        creditDto.setPsk(monthlyPayment.multiply(BigDecimal.valueOf(dto.getTerm())));
+        creditDto.setIsInsuranceEnabled(dto.getIsInsuranceEnabled());
+        creditDto.setIsSalaryClient(dto.getIsSalaryClient());
+        creditDto.setPaymentSchedule(createPaymentSchedule(dto.getAmount(), clientRate, dto.getTerm()));
+
+        return creditDto;
+    }
+
     private BigDecimal calculateMonthlyPayment(BigDecimal totalAmount, BigDecimal rate, Integer term) {
-        // формула расчёта аннуиетного платежа
-        // Платеж = Сумма кредита × (мес.ставка × (1 + мес.ставка)^Срок) / ((1 + мес.ставка)^Срок - 1)
+        // Формула расчёта аннуитетного платежа
+        // Платеж = Сумма кредита × (мес.ставка × (1 + мес. Ставка)^Срок) / ((1 + мес. Ставка)^Срок - 1)
         BigDecimal monthlyRate = rate.divide(new BigDecimal("1200"), 10, RoundingMode.HALF_UP);
         BigDecimal onePlusRate = BigDecimal.ONE.add(monthlyRate);
         BigDecimal pow = onePlusRate.pow(term);
@@ -87,13 +118,40 @@ public class CalculatorService {
         return totalAmount.multiply(annuityCoefficient).setScale(2, RoundingMode.HALF_UP);
     }
 
-    public CreditDto calculateCredit(ScoringDataDto dto) {
-        int scoreRate = scoringService.scoring(dto);
-        if (scoreRate == 0) {
-            throw new ScoringException("Данные не прошли скоринг");
-        }
-        BigDecimal clientRate = START_RATE.add(new BigDecimal(String.valueOf(scoreRate)));
+    private List<PaymentScheduleElementDto> createPaymentSchedule(BigDecimal amount, BigDecimal rate, Integer term) {
+        List<PaymentScheduleElementDto> list = new ArrayList<>();
+        LocalDate date = LocalDate.now();
+        BigDecimal monthlyPayment = calculateMonthlyPayment(amount, rate, term);
+        BigDecimal remainingDebt = amount;
 
-        return null;
+        for (int i = 1; i <= term; i++) {
+            PaymentScheduleElementDto dto = new PaymentScheduleElementDto();
+            dto.setNumber(i);
+
+            dto.setDate(date);
+            date = date.plusMonths(1);
+
+            BigDecimal interestPayment = remainingDebt.multiply(rate.divide(new BigDecimal("1200"), 2, RoundingMode.HALF_UP))
+                    .setScale(2, RoundingMode.HALF_UP);
+            dto.setInterestPayment(interestPayment);
+
+            BigDecimal debtPayment;
+            if (i == term) {
+                debtPayment = remainingDebt.setScale(2, RoundingMode.HALF_UP);
+                dto.setTotalPayment(debtPayment.add(interestPayment));
+            } else {
+                debtPayment = monthlyPayment.subtract(interestPayment)
+                        .setScale(2, RoundingMode.HALF_UP);
+                dto.setTotalPayment(monthlyPayment);
+            }
+            dto.setDebtPayment(debtPayment);
+
+            remainingDebt = remainingDebt.subtract(debtPayment).setScale(2, RoundingMode.HALF_UP);
+            dto.setRemainingDebt(remainingDebt);
+
+            list.add(dto);
+        }
+
+        return list;
     }
 }

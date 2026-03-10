@@ -88,7 +88,7 @@ public class ScoringService {
 
     private Integer scoringByEmployment(EmploymentStatus employmentStatus) {
         return switch (employmentStatus) {
-            case EMPLOYED -> -1;
+            case EMPLOYED -> -1; // новое добавленное правило
             case SELF_EMPLOYED -> 2;
             case BUSINESS_OWNER -> 1;
             default -> 0;

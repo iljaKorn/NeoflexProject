@@ -29,7 +29,7 @@ public class CalculatorController {
     }
 
     @PostMapping("/calc")
-    public CreditDto calculateCredit(@RequestBody ScoringDataDto dto) {
+    public CreditDto calculateCredit(@Valid @RequestBody ScoringDataDto dto) {
         return calculatorService.calculateCredit(dto);
     }
 }

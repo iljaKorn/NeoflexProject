@@ -11,6 +11,7 @@ import java.time.LocalDate;
 
 @Data
 public class LoanStatementRequestDto {
+
     @NotNull(message = "Сумма кредита обязательна")
     @DecimalMin(value = "20000.0", message = "Сумма кредита должна быть не меньше 20000")
     private BigDecimal amount;
