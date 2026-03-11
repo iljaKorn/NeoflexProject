@@ -4,18 +4,22 @@ import com.example.calculator.exception.PreScoringException;
 import com.example.calculator.exception.ScoringException;
 import com.example.calculator.model.DTO.*;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
-import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
 
+/**
+ * Сервис калькулятора
+ */
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class CalculatorService {
@@ -28,6 +32,10 @@ public class CalculatorService {
     private static final BigDecimal INSURANCE_DISCOUNT = new BigDecimal("3.0");
     private static final BigDecimal SALARY_DISCOUNT = new BigDecimal("1.0");
 
+    /**
+     * Метод для получения всех возможных условий кредита
+     * @param dto специальный объект с всеми входными данными для составления различных условий кредита
+     */
     public List<LoanOfferDto> getOffers(LoanStatementRequestDto dto) {
         if (!scoringService.preScoring(dto)) {
             throw new PreScoringException("Данные не прошли прескоринг");
@@ -72,12 +80,15 @@ public class CalculatorService {
         return offers;
     }
 
+    /**
+     * Метод для полного расчета всех параметров кредита
+     * @param dto специальный объект с всеми входными данными для расчёта параметров кредита
+     */
     public CreditDto calculateCredit(ScoringDataDto dto) {
-//        int scoreRate = scoringService.scoring(dto);
-//        if (scoreRate == 0) {
-//            throw new ScoringException("Данные не прошли скоринг");
-//        }
-        int scoreRate = -3;
+        int scoreRate = scoringService.scoring(dto);
+        if (scoreRate == 0) {
+            throw new ScoringException("Данные не прошли скоринг");
+        }
         BigDecimal clientRate = START_RATE.add(new BigDecimal(scoreRate));
         BigDecimal amount = dto.getAmount();
 
@@ -104,6 +115,12 @@ public class CalculatorService {
         return creditDto;
     }
 
+    /**
+     * Вспомогательный метод для расчёта ежемесячного платежа по аннуитетной схеме (равными платежами)
+     * @param totalAmount итоговая сумма долга заемщика перед банком
+     * @param rate итоговая ставка по кредиту
+     * @param term срок по выплате кредита
+     */
     private BigDecimal calculateMonthlyPayment(BigDecimal totalAmount, BigDecimal rate, Integer term) {
         // Формула расчёта аннуитетного платежа
         // Платеж = Сумма кредита × (мес.ставка × (1 + мес. Ставка)^Срок) / ((1 + мес. Ставка)^Срок - 1)
@@ -118,6 +135,12 @@ public class CalculatorService {
         return totalAmount.multiply(annuityCoefficient).setScale(2, RoundingMode.HALF_UP);
     }
 
+    /**
+     * Вспомогательный метод для расчёта графика платежей
+     * @param amount итоговая сумма долга заемщика перед банком
+     * @param rate итоговая ставка по кредиту
+     * @param term срок по выплате кредита
+     */
     private List<PaymentScheduleElementDto> createPaymentSchedule(BigDecimal amount, BigDecimal rate, Integer term) {
         List<PaymentScheduleElementDto> list = new ArrayList<>();
         LocalDate date = LocalDate.now();
