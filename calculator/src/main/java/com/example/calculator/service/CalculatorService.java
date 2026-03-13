@@ -34,12 +34,15 @@ public class CalculatorService {
 
     /**
      * Метод для получения всех возможных условий кредита
-     * @param dto специальный объект с всеми входными данными для составления различных условий кредита
+     * @param dto специальный объект со всеми входными данными для составления различных условий кредита
      */
     public List<LoanOfferDto> getOffers(LoanStatementRequestDto dto) {
+        log.info("Пришли данные для расчета условий кредита: {}", dto);
         if (!scoringService.preScoring(dto)) {
+            log.debug("Прескоринг не пройден для клиента {} {}", dto.getFirstName(), dto.getLastName());
             throw new PreScoringException("Данные не прошли прескоринг");
         }
+        log.debug("Прескоринг пройден для клиента {} {}", dto.getFirstName(), dto.getLastName());
 
         List<LoanOfferDto> offers = new ArrayList<>();
         boolean[] options = {true, false};
@@ -77,6 +80,7 @@ public class CalculatorService {
 
         offers.sort(Comparator.comparing(LoanOfferDto::getRate).reversed());
 
+        log.info("Рассчитаны различные условия кредита: {}", offers);
         return offers;
     }
 
@@ -85,10 +89,14 @@ public class CalculatorService {
      * @param dto специальный объект с всеми входными данными для расчёта параметров кредита
      */
     public CreditDto calculateCredit(ScoringDataDto dto) {
+        log.info("Пришли данные для расчета параметров кредита: {}", dto);
         int scoreRate = scoringService.scoring(dto);
         if (scoreRate == 0) {
+            log.debug("Скоринг не пройден для клиента {} {}", dto.getFirstName(), dto.getLastName());
             throw new ScoringException("Данные не прошли скоринг");
         }
+        log.debug("Скоринг пройден для клиента {} {}", dto.getFirstName(), dto.getLastName());
+
         BigDecimal clientRate = START_RATE.add(new BigDecimal(scoreRate));
         BigDecimal amount = dto.getAmount();
 
@@ -112,6 +120,7 @@ public class CalculatorService {
         creditDto.setIsSalaryClient(dto.getIsSalaryClient());
         creditDto.setPaymentSchedule(createPaymentSchedule(dto.getAmount(), clientRate, dto.getTerm()));
 
+        log.info("Рассчитаны параметры кредита: {}", creditDto);
         return creditDto;
     }
 
