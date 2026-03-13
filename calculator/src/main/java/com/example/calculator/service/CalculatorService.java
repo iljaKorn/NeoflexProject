@@ -91,10 +91,6 @@ public class CalculatorService {
     public CreditDto calculateCredit(ScoringDataDto dto) {
         log.info("Пришли данные для расчета параметров кредита: {}", dto);
         int scoreRate = scoringService.scoring(dto);
-        if (scoreRate == 0) {
-            log.debug("Скоринг не пройден для клиента {} {}", dto.getFirstName(), dto.getLastName());
-            throw new ScoringException("Данные не прошли скоринг");
-        }
         log.debug("Скоринг пройден для клиента {} {}", dto.getFirstName(), dto.getLastName());
 
         BigDecimal clientRate = START_RATE.add(new BigDecimal(scoreRate));
@@ -163,13 +159,15 @@ public class CalculatorService {
             dto.setDate(date);
             date = date.plusMonths(1);
 
-            BigDecimal interestPayment = remainingDebt.multiply(rate.divide(new BigDecimal("1200"), 2, RoundingMode.HALF_UP))
+            BigDecimal interestPayment = remainingDebt.multiply(rate.divide(new BigDecimal("1200"), 10, RoundingMode.HALF_UP))
                     .setScale(2, RoundingMode.HALF_UP);
             dto.setInterestPayment(interestPayment);
 
             BigDecimal debtPayment;
+            // из-за погрешности вычислений в последнем платеже мог возникать отрицательный остаток по долгу,
+            // поэтому в последнем платеже списываем весь долг
             if (i == term) {
-                debtPayment = remainingDebt.setScale(2, RoundingMode.HALF_UP);
+                debtPayment = remainingDebt;
                 dto.setTotalPayment(debtPayment.add(interestPayment));
             } else {
                 debtPayment = monthlyPayment.subtract(interestPayment)
