@@ -1,5 +1,6 @@
 package com.example.calculator.service;
 
+import com.example.calculator.exception.ScoringException;
 import com.example.calculator.model.DTO.LoanStatementRequestDto;
 import com.example.calculator.model.DTO.ScoringDataDto;
 import com.example.calculator.model.DTO.enums.EmploymentStatus;
@@ -27,44 +28,33 @@ public class ScoringService {
      * @param dto специальный объект со всеми входными данными для скоринга
      */
     public Integer scoring(ScoringDataDto dto) {
-        int scoreRate = 0;
-
-        EmploymentStatus employmentStatus = dto.getEmployment().getEmploymentStatus();
-        if (employmentStatus == EmploymentStatus.UNEMPLOYED) {
+        if (dto.getEmployment().getEmploymentStatus() == EmploymentStatus.UNEMPLOYED) {
             log.debug("Данные не прошли скоринг по статусу на работе");
-            return 0;
+            throw new ScoringException("Клиент безработный");
         }
-        scoreRate += scoringByEmploymentStatus(employmentStatus);
-
-        Position position = dto.getEmployment().getPosition();
-        scoreRate += scoringByPosition(position);
 
         // если сумма заёма больше, чем 24 зарплаты, то отказ
-        BigDecimal amount = dto.getAmount();
-        BigDecimal loanCeiling = dto.getEmployment().getSalary().multiply(BigDecimal.valueOf(24));
-        if (amount.compareTo(loanCeiling) == 1) {
+        if (dto.getAmount().compareTo(dto.getEmployment().getSalary().multiply(BigDecimal.valueOf(24))) == 1) {
             log.debug("Данные не прошли скоринг по величине заёма");
-            return 0;
+            throw new ScoringException("Сумма кредита превышает 24 зарплаты");
         }
-
-        MaritalStatus maritalStatus = dto.getMaritalStatus();
-        scoreRate += scoringByMaritalStatus(maritalStatus);
 
         int age = LocalDate.now().getYear() - dto.getBirthdate().getYear();
         if (age < 20 || age > 65) {
             log.debug("Данные не прошли скоринг по возрасту");
-            return 0;
+            throw new ScoringException("Клиент не подходит по возрасту");
         }
 
-        Gender gender = dto.getGender();
-        scoreRate += scoringByGenderAndAge(gender, age);
-
-        int workExperienceTotal = dto.getEmployment().getWorkExperienceTotal();
-        int workExperienceCurrent = dto.getEmployment().getWorkExperienceCurrent();
-        if (workExperienceTotal < 18 || workExperienceCurrent < 3) {
+        if (dto.getEmployment().getWorkExperienceTotal() < 18 || dto.getEmployment().getWorkExperienceCurrent() < 3) {
             log.debug("Данные не прошли скоринг по опыту работы");
-            return 0;
+            throw new ScoringException("Клиент не подходит по опыту работы");
         }
+
+        int scoreRate = 0;
+        scoreRate += scoringByEmploymentStatus(dto.getEmployment().getEmploymentStatus());
+        scoreRate += scoringByPosition(dto.getEmployment().getPosition());
+        scoreRate += scoringByMaritalStatus(dto.getMaritalStatus());
+        scoreRate += scoringByGenderAndAge(dto.getGender(), age);
 
         return scoreRate;
     }
