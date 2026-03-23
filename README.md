@@ -1,1 +1,0 @@
-# Проектное задание: Java Development
