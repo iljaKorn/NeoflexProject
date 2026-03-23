@@ -1,0 +1,10 @@
+spring:
+  application:
+    name: calculator
+bank:
+  rate: 15
+  insurance:
+    price: 100000
+    discount: 3.0
+  salary:
+    discount: 1.0

@@ -1,13 +1,13 @@
-package com.example.neoflexproject;
+package com.neoproject.calculator;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-class NeoflexProjectApplicationTests {
+class CalculatorApplicationTests {
 
-	@Test
-	void contextLoads() {
-	}
+    @Test
+    void contextLoads() {
+    }
 
 }
