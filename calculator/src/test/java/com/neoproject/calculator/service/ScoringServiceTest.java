@@ -2,7 +2,6 @@ package com.neoproject.calculator.service;
 
 import com.neoproject.calculator.exception.ScoringException;
 import com.neoproject.calculator.model.dto.EmploymentDto;
-import com.neoproject.calculator.model.dto.LoanStatementRequestDto;
 import com.neoproject.calculator.model.dto.ScoringDataDto;
 import com.neoproject.calculator.model.dto.enums.EmploymentStatus;
 import com.neoproject.calculator.model.dto.enums.Gender;
@@ -26,23 +25,11 @@ class ScoringServiceTest {
 
     private ScoringService scoringService;
 
-    private LoanStatementRequestDto validRequestForOffers;
     private ScoringDataDto validRequestForCredit;
 
     @BeforeEach
     void setUp() {
         scoringService = new ScoringService();
-
-        validRequestForOffers = new LoanStatementRequestDto();
-        validRequestForOffers.setAmount(new BigDecimal("300000"));
-        validRequestForOffers.setTerm(12);
-        validRequestForOffers.setFirstName("Ivan");
-        validRequestForOffers.setLastName("Petrov");
-        validRequestForOffers.setMiddleName("Sergeevich");
-        validRequestForOffers.setEmail("ivan@example.com");
-        validRequestForOffers.setBirthdate(LocalDate.of(1990, 1, 1));
-        validRequestForOffers.setPassportSeries("1234");
-        validRequestForOffers.setPassportNumber("567890");
 
         validRequestForCredit = new ScoringDataDto();
         validRequestForCredit.setAmount(new BigDecimal("300000"));

@@ -1,7 +1,6 @@
 package com.neoproject.calculator.service;
 
 import com.neoproject.calculator.exception.ScoringException;
-import com.neoproject.calculator.model.dto.LoanStatementRequestDto;
 import com.neoproject.calculator.model.dto.ScoringDataDto;
 import com.neoproject.calculator.model.dto.enums.EmploymentStatus;
 import com.neoproject.calculator.model.dto.enums.Gender;
@@ -12,7 +11,6 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.time.Period;
 
 /**
  * Сервис скоринга
