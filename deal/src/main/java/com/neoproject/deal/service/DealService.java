@@ -16,6 +16,7 @@ import com.neoproject.deal.repository.CreditRepository;
 import com.neoproject.deal.repository.StatementRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
@@ -26,6 +27,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+/**
+ * Сервис сделок
+ */
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class DealService {
@@ -40,11 +45,16 @@ public class DealService {
 
     private final RestClient restClient;
 
+    /**
+     * Метод для получения всех возможных условий кредита и сохранения этих данных в базу
+     * @param dto специальный объект со всеми входными данными для составления различных условий кредита
+     */
     @Transactional
     public List<LoanOfferDto> getOffers(LoanStatementRequestDto dto) {
         Client newClient = clientMapper.toEntity(dto);
 
         Client saveClient = clientRepository.save(newClient);
+        log.debug("В базу сохранены данные о клиенте: {}", saveClient);
 
         Statement newStatement = new Statement();
         newStatement.setClient(saveClient);
@@ -52,6 +62,7 @@ public class DealService {
         List<StatementStatusHistoryDto> statementStatusHistory = new ArrayList<>();
         newStatement.setStatusHistory(statementStatusHistory);
         Statement saveStatement = statementRepository.save(newStatement);
+        log.debug("В базу сохранены данные о сделке: {}", saveStatement);
 
         List<LoanOfferDto> offers;
         try {
@@ -64,10 +75,10 @@ public class DealService {
         } catch (Exception e) {
             throw new DealServiceException("Ошибка при запросе в другой сервис");
         }
-
         if (offers == null){
             throw new DealServiceException("Полученные данные равны null");
         }
+        log.debug("Получены данные о предложениях {} от сервиса калькулятора", offers);
 
         for (LoanOfferDto offer : offers) {
             offer.setStatementId(saveStatement.getStatementId());
@@ -76,6 +87,10 @@ public class DealService {
         return offers;
     }
 
+    /**
+     * Метод для подтверждения выбора одного из предложений по кредиту
+     * @param dto специальный объект со всеми входными данными по одному из предложений
+     */
     @Transactional
     public void selectOffer(LoanOfferDto dto) {
         Statement statement = statementRepository.findById(dto.getStatementId())
@@ -83,8 +98,14 @@ public class DealService {
         updateStatus(statement, ApplicationStatus.PREAPPROVAL);
         statement.setAppliedOffer(dto);
         statementRepository.save(statement);
+        log.debug("В базе обновлены данные о сделке: {}", statement);
     }
 
+    /**
+     * Метод для завершения регистрации клиента и расчёта всех параметров кредита
+     * @param statementId id сделки
+     * @param dto специальный объект с данными для завершения оформления кредита
+     */
     @Transactional
     public void finishRegistration(String statementId, FinishRegistrationRequestDto dto) {
         Statement statement = statementRepository.findById(UUID.fromString(statementId))
@@ -113,16 +134,24 @@ public class DealService {
         if (creditDto == null) {
             throw new DealServiceException("Полученные данные равны null");
         }
+        log.debug("Получены данные о кредите {} от сервиса калькулятора", creditDto);
 
         Credit credit = creditMapper.toEntity(creditDto);
         credit.setCreditStatus(CreditStatus.CALCULATED);
         creditRepository.save(credit);
+        log.debug("В базу добавлены данные о кредите: {}", credit);
 
         statement.setCredit(credit);
         updateStatus(statement, ApplicationStatus.APPROVED);
         statementRepository.save(statement);
+        log.debug("В базу добавлены финальные данные о сделке: {}", statement);
     }
 
+    /**
+     * Вспомогательный метод для обновления статуса заявки
+     * @param statement объект с данными о заявке по кредиту
+     * @param status новый статус, присеваемый заявке
+     */
     private void updateStatus(Statement statement, ApplicationStatus status) {
         statement.setStatus(status);
 

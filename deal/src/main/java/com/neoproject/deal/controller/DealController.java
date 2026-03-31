@@ -33,7 +33,10 @@ public class DealController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Предложения успешно сформированы и представлены")})
     public List<LoanOfferDto> getOffers(@Valid @RequestBody LoanStatementRequestDto dto){
-        return dealService.getOffers(dto);
+        log.info("Пришли данные для расчета условий кредита: {}", dto);
+        List<LoanOfferDto> offers = dealService.getOffers(dto);
+        log.info("Рассчитаны различные условия кредита: {}", offers);
+        return offers;
     }
 
     @PostMapping("/offer/select")
@@ -41,12 +44,18 @@ public class DealController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Предложение успешно выбрано")})
     public void selectOffer(@RequestBody LoanOfferDto dto){
+        log.info("Пришло предложение для подтверждения: {}", dto);
         dealService.selectOffer(dto);
+        log.info("Предложение принято: {}", dto);
     }
 
     @PostMapping("/calculate/{statementId}")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Регистрация завершена")})
     public void finishRegistration(@PathVariable String statementId,
                                    @RequestBody FinishRegistrationRequestDto dto){
+        log.info("Пришли данные для завершения регистрации statementId: {}, dto: {}", statementId, dto);
         dealService.finishRegistration(statementId, dto);
+        log.info("Регистрация пользователя завершена с statementId: {}", statementId);
     }
 }
