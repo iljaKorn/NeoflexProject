@@ -41,12 +41,12 @@ public class DealController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Предложение успешно выбрано")})
     public void selectOffer(@RequestBody LoanOfferDto dto){
-
+        dealService.selectOffer(dto);
     }
 
     @PostMapping("/calculate/{statementId}")
     public void finishRegistration(@PathVariable String statementId,
                                    @RequestBody FinishRegistrationRequestDto dto){
-
+        dealService.finishRegistration(statementId, dto);
     }
 }
