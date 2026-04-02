@@ -58,9 +58,7 @@ public class DealService {
 
         Statement newStatement = new Statement();
         newStatement.setClient(saveClient);
-        newStatement.setCreationDate(LocalDateTime.now());
-        List<StatementStatusHistoryDto> statementStatusHistory = new ArrayList<>();
-        newStatement.setStatusHistory(statementStatusHistory);
+        newStatement.setCreationDate(LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS));
         Statement saveStatement = statementRepository.save(newStatement);
         log.debug("В базу сохранены данные о сделке: {}", saveStatement);
 

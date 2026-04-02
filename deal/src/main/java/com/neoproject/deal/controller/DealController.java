@@ -43,7 +43,7 @@ public class DealController {
     @Operation(summary = "Выбор одного из предложений")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Предложение успешно выбрано")})
-    public void selectOffer(@RequestBody LoanOfferDto dto){
+    public void selectOffer(@Valid @RequestBody LoanOfferDto dto){
         log.info("Пришло предложение для подтверждения: {}", dto);
         dealService.selectOffer(dto);
         log.info("Предложение принято: {}", dto);
@@ -53,7 +53,7 @@ public class DealController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Регистрация завершена")})
     public void finishRegistration(@PathVariable String statementId,
-                                   @RequestBody FinishRegistrationRequestDto dto){
+                                   @Valid @RequestBody FinishRegistrationRequestDto dto){
         log.info("Пришли данные для завершения регистрации statementId: {}, dto: {}", statementId, dto);
         dealService.finishRegistration(statementId, dto);
         log.info("Регистрация пользователя завершена с statementId: {}", statementId);
