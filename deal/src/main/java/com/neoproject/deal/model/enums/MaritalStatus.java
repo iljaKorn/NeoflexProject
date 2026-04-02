@@ -1,4 +1,4 @@
-package com.neoproject.calculator.model.dto.enums;
+package com.neoproject.deal.model.enums;
 
 public enum MaritalStatus {
     MARRIED,

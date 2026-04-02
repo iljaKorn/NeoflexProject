@@ -1,0 +1,13 @@
+server:
+  port: 8081
+spring:
+  application:
+    name: deal
+  jpa:
+    hibernate:
+      ddl-auto: update
+  datasource:
+    url: jdbc:postgresql://localhost:5433/bank
+    username: ilya
+    password: 123
+    driver-class-name: org.postgresql.Driver
