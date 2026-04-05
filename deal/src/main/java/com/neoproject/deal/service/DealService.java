@@ -3,7 +3,8 @@ package com.neoproject.deal.service;
 import com.neoproject.deal.converter.ClientMapper;
 import com.neoproject.deal.converter.CreditMapper;
 import com.neoproject.deal.converter.ScoringDataMapper;
-import com.neoproject.deal.exception.DealServiceException;
+import com.neoproject.deal.exception.DealDatabaseNotFoundException;
+import com.neoproject.deal.exception.DealExternalServiceException;
 import com.neoproject.deal.model.dto.*;
 import com.neoproject.deal.model.entity.Client;
 import com.neoproject.deal.model.entity.Credit;
@@ -71,10 +72,10 @@ public class DealService {
                     .body(new ParameterizedTypeReference<>() {
                     });
         } catch (Exception e) {
-            throw new DealServiceException("Ошибка при запросе в другой сервис");
+            throw new DealExternalServiceException("Ошибка при запросе в другой сервис");
         }
         if (offers == null){
-            throw new DealServiceException("Полученные данные равны null");
+            throw new DealExternalServiceException("Полученные данные равны null");
         }
         log.debug("Получены данные о предложениях {} от сервиса калькулятора", offers);
 
@@ -92,7 +93,7 @@ public class DealService {
     @Transactional
     public void selectOffer(LoanOfferDto dto) {
         Statement statement = statementRepository.findById(dto.getStatementId())
-                .orElseThrow(() -> new DealServiceException("Заявка не найдена"));
+                .orElseThrow(() -> new DealDatabaseNotFoundException("Заявка не найдена"));
         updateStatus(statement, ApplicationStatus.PREAPPROVAL);
         statement.setAppliedOffer(dto);
         statementRepository.save(statement);
@@ -107,7 +108,7 @@ public class DealService {
     @Transactional
     public void finishRegistration(String statementId, FinishRegistrationRequestDto dto) {
         Statement statement = statementRepository.findById(UUID.fromString(statementId))
-                .orElseThrow(() -> new DealServiceException("Заявка не найдена"));
+                .orElseThrow(() -> new DealDatabaseNotFoundException("Заявка не найдена"));
 
         statement.getClient().setGender(dto.getGender());
         statement.getClient().setMaritalStatus(dto.getMaritalStatus());
@@ -127,10 +128,10 @@ public class DealService {
                     .retrieve()
                     .body(CreditDto.class);
         } catch (Exception e) {
-            throw new DealServiceException("Ошибка при запросе в другой сервис");
+            throw new DealExternalServiceException("Ошибка при запросе в другой сервис");
         }
         if (creditDto == null) {
-            throw new DealServiceException("Полученные данные равны null");
+            throw new DealExternalServiceException("Полученные данные равны null");
         }
         log.debug("Получены данные о кредите {} от сервиса калькулятора", creditDto);
 

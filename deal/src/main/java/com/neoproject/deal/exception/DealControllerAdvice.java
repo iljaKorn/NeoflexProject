@@ -9,10 +9,17 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @RestControllerAdvice
 public class DealControllerAdvice {
 
-    @ExceptionHandler(DealServiceException.class)
-    ResponseEntity<ErrorMessage> handleScoringException(DealServiceException e) {
+    @ExceptionHandler(DealDatabaseNotFoundException.class)
+    ResponseEntity<ErrorMessage> handleScoringException(DealDatabaseNotFoundException e) {
         ErrorMessage errorMessage = new ErrorMessage();
         errorMessage.setDescription(e.getMessage());
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorMessage);
+    }
+
+    @ExceptionHandler(DealExternalServiceException.class)
+    ResponseEntity<ErrorMessage> handleScoringException(DealExternalServiceException e) {
+        ErrorMessage errorMessage = new ErrorMessage();
+        errorMessage.setDescription(e.getMessage());
+        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(errorMessage);
     }
 }

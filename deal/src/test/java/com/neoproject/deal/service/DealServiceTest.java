@@ -3,7 +3,7 @@ package com.neoproject.deal.service;
 import com.neoproject.deal.converter.ClientMapper;
 import com.neoproject.deal.converter.CreditMapper;
 import com.neoproject.deal.converter.ScoringDataMapper;
-import com.neoproject.deal.exception.DealServiceException;
+import com.neoproject.deal.exception.DealDatabaseNotFoundException;
 import com.neoproject.deal.model.dto.*;
 import com.neoproject.deal.model.entity.Client;
 import com.neoproject.deal.model.entity.Credit;
@@ -171,7 +171,7 @@ class DealServiceTest {
 
         // Действие и Проверка
         assertThatThrownBy(() -> dealService.getOffers(validRequestForGetOffers))
-                .isInstanceOf(DealServiceException.class)
+                .isInstanceOf(DealDatabaseNotFoundException.class)
                 .hasMessageContaining("Ошибка при запросе в другой сервис");
     }
 
@@ -198,7 +198,7 @@ class DealServiceTest {
 
         // Действие и Проверка
         assertThatThrownBy(() -> dealService.getOffers(validRequestForGetOffers))
-                .isInstanceOf(DealServiceException.class)
+                .isInstanceOf(DealDatabaseNotFoundException.class)
                 .hasMessageContaining("Полученные данные равны null");
     }
 
@@ -240,7 +240,7 @@ class DealServiceTest {
 
         // Действие и Проверка
         assertThatThrownBy(() -> dealService.selectOffer(validRequestForSelectOneOffer))
-                .isInstanceOf(DealServiceException.class)
+                .isInstanceOf(DealDatabaseNotFoundException.class)
                 .hasMessageContaining("Заявка не найдена");
     }
 
@@ -343,7 +343,7 @@ class DealServiceTest {
 
         // Действие и Проверка
         assertThatThrownBy(() -> dealService.finishRegistration(UUID.randomUUID().toString(), validRequestForFinishRegistration))
-                .isInstanceOf(DealServiceException.class)
+                .isInstanceOf(DealDatabaseNotFoundException.class)
                 .hasMessageContaining("Ошибка при запросе в другой сервис");
     }
 
@@ -390,7 +390,7 @@ class DealServiceTest {
 
         // Действие и Проверка
         assertThatThrownBy(() -> dealService.finishRegistration(UUID.randomUUID().toString(), validRequestForFinishRegistration))
-                .isInstanceOf(DealServiceException.class)
+                .isInstanceOf(DealDatabaseNotFoundException.class)
                 .hasMessageContaining("Полученные данные равны null");
     }
 }
