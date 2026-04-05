@@ -11,7 +11,6 @@ import com.neoproject.deal.model.enums.Gender;
 import com.neoproject.deal.model.enums.MaritalStatus;
 import com.neoproject.deal.model.enums.Position;
 import com.neoproject.deal.service.DealService;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,12 +40,11 @@ class DealControllerTest {
     @MockitoBean
     private DealService dealService;
 
-    private ObjectMapper objectMapper;
+    private final ObjectMapper objectMapper;
 
-    @BeforeEach
-    void setUp() {
-        objectMapper = new ObjectMapper();
-        objectMapper.registerModule(new JavaTimeModule());
+    DealControllerTest(){
+        this.objectMapper = new ObjectMapper();
+        this.objectMapper.registerModule(new JavaTimeModule());
     }
 
     @Test

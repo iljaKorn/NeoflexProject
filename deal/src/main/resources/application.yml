@@ -11,3 +11,6 @@ spring:
     username: ilya
     password: 123
     driver-class-name: org.postgresql.Driver
+services:
+  calculator:
+    url: http://localhost:8080/calculator

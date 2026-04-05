@@ -3,16 +3,15 @@ package com.neoproject.deal.converter;
 import com.neoproject.deal.model.dto.LoanStatementRequestDto;
 import com.neoproject.deal.model.entity.Client;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@SpringBootTest
+@ExtendWith(MockitoExtension.class)
 class ClientMapperTest {
 
-    @Autowired
-    private ClientMapper clientMapper;
+    private final ClientMapper clientMapper = new ClientMapperImpl();
 
     @Test
     void shouldConvertLoanStatementRequestDtoIntoClient() {

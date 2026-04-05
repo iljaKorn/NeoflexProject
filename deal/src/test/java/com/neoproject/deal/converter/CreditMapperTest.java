@@ -3,16 +3,15 @@ package com.neoproject.deal.converter;
 import com.neoproject.deal.model.dto.CreditDto;
 import com.neoproject.deal.model.entity.Credit;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@SpringBootTest
+@ExtendWith(MockitoExtension.class)
 class CreditMapperTest {
 
-    @Autowired
-    private CreditMapper creditMapper;
+    private final CreditMapper creditMapper = new CreditMapperImpl();
 
     @Test
     void shouldConvertCreditDtoIntoCredit() {

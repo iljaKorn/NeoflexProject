@@ -8,8 +8,8 @@ import com.neoproject.deal.model.entity.Passport;
 import com.neoproject.deal.model.entity.Statement;
 import com.neoproject.deal.model.enums.*;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -17,11 +17,10 @@ import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@SpringBootTest
+@ExtendWith(MockitoExtension.class)
 class ScoringDataMapperTest {
 
-    @Autowired
-    private ScoringDataMapper scoringDataMapper;
+    private final ScoringDataMapper scoringDataMapper = new ScoringDataMapperImpl();
 
     @Test
     void shouldConvertStatementIntoScoringDataDto() {
