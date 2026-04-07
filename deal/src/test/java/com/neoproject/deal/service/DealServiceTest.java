@@ -4,6 +4,7 @@ import com.neoproject.deal.converter.ClientMapper;
 import com.neoproject.deal.converter.CreditMapper;
 import com.neoproject.deal.converter.ScoringDataMapper;
 import com.neoproject.deal.exception.DealDatabaseNotFoundException;
+import com.neoproject.deal.exception.DealExternalServiceException;
 import com.neoproject.deal.model.dto.*;
 import com.neoproject.deal.model.entity.Client;
 import com.neoproject.deal.model.entity.Credit;
@@ -171,7 +172,7 @@ class DealServiceTest {
 
         // Действие и Проверка
         assertThatThrownBy(() -> dealService.getOffers(validRequestForGetOffers))
-                .isInstanceOf(DealDatabaseNotFoundException.class)
+                .isInstanceOf(DealExternalServiceException.class)
                 .hasMessageContaining("Ошибка при запросе в другой сервис");
     }
 
@@ -198,7 +199,7 @@ class DealServiceTest {
 
         // Действие и Проверка
         assertThatThrownBy(() -> dealService.getOffers(validRequestForGetOffers))
-                .isInstanceOf(DealDatabaseNotFoundException.class)
+                .isInstanceOf(DealExternalServiceException.class)
                 .hasMessageContaining("Полученные данные равны null");
     }
 
@@ -343,7 +344,7 @@ class DealServiceTest {
 
         // Действие и Проверка
         assertThatThrownBy(() -> dealService.finishRegistration(UUID.randomUUID().toString(), validRequestForFinishRegistration))
-                .isInstanceOf(DealDatabaseNotFoundException.class)
+                .isInstanceOf(DealExternalServiceException.class)
                 .hasMessageContaining("Ошибка при запросе в другой сервис");
     }
 
@@ -390,7 +391,7 @@ class DealServiceTest {
 
         // Действие и Проверка
         assertThatThrownBy(() -> dealService.finishRegistration(UUID.randomUUID().toString(), validRequestForFinishRegistration))
-                .isInstanceOf(DealDatabaseNotFoundException.class)
+                .isInstanceOf(DealExternalServiceException.class)
                 .hasMessageContaining("Полученные данные равны null");
     }
 }

@@ -3,8 +3,8 @@ package com.neoproject.deal.service;
 import com.neoproject.deal.converter.ClientMapper;
 import com.neoproject.deal.converter.CreditMapper;
 import com.neoproject.deal.converter.ScoringDataMapper;
+import com.neoproject.deal.converter.StatementMapper;
 import com.neoproject.deal.exception.DealDatabaseNotFoundException;
-import com.neoproject.deal.exception.DealExternalServiceException;
 import com.neoproject.deal.model.dto.*;
 import com.neoproject.deal.model.entity.Client;
 import com.neoproject.deal.model.entity.Credit;
@@ -15,12 +15,9 @@ import com.neoproject.deal.model.enums.CreditStatus;
 import com.neoproject.deal.repository.ClientRepository;
 import com.neoproject.deal.repository.CreditRepository;
 import com.neoproject.deal.repository.StatementRepository;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestClient;
 
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
@@ -43,14 +40,15 @@ public class DealService {
     private final ScoringDataMapper scoringDataMapper;
     private final CreditMapper creditMapper;
     private final ClientMapper clientMapper;
+    private final StatementMapper statementMapper;
 
-    private final RestClient restClient;
+    private final CalculatorClientService calculatorClientService;
 
     /**
      * Метод для получения всех возможных условий кредита и сохранения этих данных в базу
+     *
      * @param dto специальный объект со всеми входными данными для составления различных условий кредита
      */
-    @Transactional
     public List<LoanOfferDto> getOffers(LoanStatementRequestDto dto) {
         Client newClient = clientMapper.toEntity(dto);
 
@@ -63,21 +61,7 @@ public class DealService {
         Statement saveStatement = statementRepository.save(newStatement);
         log.debug("В базу сохранены данные о сделке: {}", saveStatement);
 
-        List<LoanOfferDto> offers;
-        try {
-             offers = restClient.post()
-                    .uri("/offers")
-                    .body(dto)
-                    .retrieve()
-                    .body(new ParameterizedTypeReference<>() {
-                    });
-        } catch (Exception e) {
-            throw new DealExternalServiceException("Ошибка при запросе в другой сервис");
-        }
-        if (offers == null){
-            throw new DealExternalServiceException("Полученные данные равны null");
-        }
-        log.debug("Получены данные о предложениях {} от сервиса калькулятора", offers);
+        List<LoanOfferDto> offers = calculatorClientService.getOffers(dto);
 
         for (LoanOfferDto offer : offers) {
             offer.setStatementId(saveStatement.getStatementId());
@@ -88,9 +72,9 @@ public class DealService {
 
     /**
      * Метод для подтверждения выбора одного из предложений по кредиту
+     *
      * @param dto специальный объект со всеми входными данными по одному из предложений
      */
-    @Transactional
     public void selectOffer(LoanOfferDto dto) {
         Statement statement = statementRepository.findById(dto.getStatementId())
                 .orElseThrow(() -> new DealDatabaseNotFoundException("Заявка не найдена"));
@@ -102,38 +86,17 @@ public class DealService {
 
     /**
      * Метод для завершения регистрации клиента и расчёта всех параметров кредита
+     *
      * @param statementId id сделки
-     * @param dto специальный объект с данными для завершения оформления кредита
+     * @param dto         специальный объект с данными для завершения оформления кредита
      */
-    @Transactional
     public void finishRegistration(String statementId, FinishRegistrationRequestDto dto) {
         Statement statement = statementRepository.findById(UUID.fromString(statementId))
                 .orElseThrow(() -> new DealDatabaseNotFoundException("Заявка не найдена"));
 
-        statement.getClient().setGender(dto.getGender());
-        statement.getClient().setMaritalStatus(dto.getMaritalStatus());
-        statement.getClient().setDependentAmount(dto.getDependentAmount());
-        statement.getClient().getPassport().setIssueDate(dto.getPassportIssueDate());
-        statement.getClient().getPassport().setIssueBranch(dto.getPassportIssueBranch());
-        statement.getClient().setEmployment(dto.getEmployment());
-        statement.getClient().setAccountNumber(dto.getAccountNumber());
-
+        statementMapper.updateStatementFromDto(statement, dto);
         ScoringDataDto scoringDataDto = scoringDataMapper.toDto(statement);
-
-        CreditDto creditDto;
-        try {
-             creditDto = restClient.post()
-                    .uri("/calc")
-                    .body(scoringDataDto)
-                    .retrieve()
-                    .body(CreditDto.class);
-        } catch (Exception e) {
-            throw new DealExternalServiceException("Ошибка при запросе в другой сервис");
-        }
-        if (creditDto == null) {
-            throw new DealExternalServiceException("Полученные данные равны null");
-        }
-        log.debug("Получены данные о кредите {} от сервиса калькулятора", creditDto);
+        CreditDto creditDto = calculatorClientService.calculateCredit(scoringDataDto);
 
         Credit credit = creditMapper.toEntity(creditDto);
         credit.setCreditStatus(CreditStatus.CALCULATED);
@@ -148,8 +111,9 @@ public class DealService {
 
     /**
      * Вспомогательный метод для обновления статуса заявки
+     *
      * @param statement объект с данными о заявке по кредиту
-     * @param status новый статус, присеваемый заявке
+     * @param status    новый статус, присеваемый заявке
      */
     private void updateStatus(Statement statement, ApplicationStatus status) {
         statement.setStatus(status);
