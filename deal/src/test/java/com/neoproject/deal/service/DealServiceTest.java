@@ -3,12 +3,11 @@ package com.neoproject.deal.service;
 import com.neoproject.deal.converter.ClientMapper;
 import com.neoproject.deal.converter.CreditMapper;
 import com.neoproject.deal.converter.ScoringDataMapper;
+import com.neoproject.deal.converter.StatementMapper;
 import com.neoproject.deal.exception.DealDatabaseNotFoundException;
-import com.neoproject.deal.exception.DealExternalServiceException;
 import com.neoproject.deal.model.dto.*;
 import com.neoproject.deal.model.entity.Client;
 import com.neoproject.deal.model.entity.Credit;
-import com.neoproject.deal.model.entity.Passport;
 import com.neoproject.deal.model.entity.Statement;
 import com.neoproject.deal.model.enums.*;
 import com.neoproject.deal.repository.ClientRepository;
@@ -21,8 +20,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.web.client.RestClient;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -58,13 +55,11 @@ class DealServiceTest {
     private CreditMapper creditMapper;
     @Mock
     private ClientMapper clientMapper;
+    @Mock
+    private StatementMapper statementMapper;
 
     @Mock
-    private RestClient restClient;
-    @Mock
-    private RestClient.RequestBodyUriSpec requestBodyUriSpec;
-    @Mock
-    private RestClient.ResponseSpec responseSpec;
+    private CalculatorClientService calculatorClientService;
 
     private LoanStatementRequestDto validRequestForGetOffers;
     private LoanOfferDto validRequestForSelectOneOffer;
@@ -128,12 +123,7 @@ class DealServiceTest {
         when(clientMapper.toEntity(validRequestForGetOffers)).thenReturn(client);
         when(clientRepository.save(client)).thenReturn(client);
         when(statementRepository.save(any(Statement.class))).thenReturn(statement);
-
-        when(restClient.post()).thenReturn(requestBodyUriSpec);
-        when(requestBodyUriSpec.uri("/offers")).thenReturn(requestBodyUriSpec);
-        when(requestBodyUriSpec.body(validRequestForGetOffers)).thenReturn(requestBodyUriSpec);
-        when(requestBodyUriSpec.retrieve()).thenReturn(responseSpec);
-        when(responseSpec.body(any(ParameterizedTypeReference.class))).thenReturn(expectedOffers);
+        when(calculatorClientService.getOffers(any(LoanStatementRequestDto.class))).thenReturn(expectedOffers);
 
         // Действие
         List<LoanOfferDto> result = dealService.getOffers(validRequestForGetOffers);
@@ -147,60 +137,6 @@ class DealServiceTest {
         verify(statementRepository, times(1)).save(any(Statement.class));
         verify(clientRepository, times(1)).save(any(Client.class));
         verify(clientMapper, times(1)).toEntity(any(LoanStatementRequestDto.class));
-    }
-
-    @Test
-    void shouldThrowDealServiceExceptionForEternalService() {
-        // Подготовка
-        Client client = new Client();
-
-        Statement statement = new Statement();
-        statement.setStatementId(UUID.randomUUID());
-        statement.setClient(client);
-        statement.setCreationDate(LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS));
-
-        when(clientMapper.toEntity(validRequestForGetOffers)).thenReturn(client);
-        when(clientRepository.save(client)).thenReturn(client);
-        when(statementRepository.save(any(Statement.class))).thenReturn(statement);
-
-        when(restClient.post()).thenReturn(requestBodyUriSpec);
-        when(requestBodyUriSpec.uri("/offers")).thenReturn(requestBodyUriSpec);
-        when(requestBodyUriSpec.body(validRequestForGetOffers)).thenReturn(requestBodyUriSpec);
-        when(requestBodyUriSpec.retrieve()).thenReturn(responseSpec);
-        when(responseSpec.body(any(ParameterizedTypeReference.class)))
-                .thenThrow(new RuntimeException("Connection refused"));
-
-        // Действие и Проверка
-        assertThatThrownBy(() -> dealService.getOffers(validRequestForGetOffers))
-                .isInstanceOf(DealExternalServiceException.class)
-                .hasMessageContaining("Ошибка при запросе в другой сервис");
-    }
-
-    @Test
-    void shouldThrowDealServiceExceptionForResponseWithNull() {
-        // Подготовка
-        Client client = new Client();
-
-        Statement statement = new Statement();
-        statement.setStatementId(UUID.randomUUID());
-        statement.setClient(client);
-        statement.setCreationDate(LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS));
-
-        when(clientMapper.toEntity(validRequestForGetOffers)).thenReturn(client);
-        when(clientRepository.save(client)).thenReturn(client);
-        when(statementRepository.save(any(Statement.class))).thenReturn(statement);
-
-        when(restClient.post()).thenReturn(requestBodyUriSpec);
-        when(requestBodyUriSpec.uri("/offers")).thenReturn(requestBodyUriSpec);
-        when(requestBodyUriSpec.body(validRequestForGetOffers)).thenReturn(requestBodyUriSpec);
-        when(requestBodyUriSpec.retrieve()).thenReturn(responseSpec);
-        when(responseSpec.body(any(ParameterizedTypeReference.class)))
-                .thenReturn(null);
-
-        // Действие и Проверка
-        assertThatThrownBy(() -> dealService.getOffers(validRequestForGetOffers))
-                .isInstanceOf(DealExternalServiceException.class)
-                .hasMessageContaining("Полученные данные равны null");
     }
 
     @Test
@@ -234,7 +170,7 @@ class DealServiceTest {
     }
 
     @Test
-    void shouldThrowDealServiceExceptionForNotFoundInDB() {
+    void shouldThrowDealDatabaseNotFoundExceptionForCalculateCredit() {
         // Подготовка
         when(statementRepository.findById(any()))
                 .thenReturn(Optional.empty());
@@ -249,149 +185,41 @@ class DealServiceTest {
     void shouldFinishRegistrationCorrectly() {
         // Подготовка
         Statement statement = new Statement();
-        Client client = new Client();
-        Passport passport = new Passport();
-        client.setPassport(passport);
-        statement.setClient(client);
-
         ScoringDataDto scoringDataDto = new ScoringDataDto();
         CreditDto creditDto = new CreditDto();
-
-        Credit expectedCredit = new Credit();
-        expectedCredit.setCreditStatus(CreditStatus.CALCULATED);
-        Statement expectedStatement = new Statement();
-        Client expectedClient = new Client();
-        expectedClient.setGender(Gender.MALE);
-        expectedClient.setMaritalStatus(MaritalStatus.MARRIED);
-        expectedClient.setDependentAmount(2);
-        EmploymentDto employment = new EmploymentDto();
-        employment.setEmploymentStatus(EmploymentStatus.EMPLOYED);
-        employment.setEmployerINN("123456789012");
-        employment.setSalary(BigDecimal.valueOf(85000));
-        employment.setPosition(Position.MID_MANAGER);
-        employment.setWorkExperienceTotal(60);
-        employment.setWorkExperienceCurrent(36);
-        expectedClient.setEmployment(employment);
-        expectedClient.setAccountNumber("40817810001234567890");
-        expectedStatement.setClient(expectedClient);
-        expectedStatement.setCredit(expectedCredit);
+        Credit credit = new Credit();
 
         when(statementRepository.findById(any()))
                 .thenReturn(Optional.of(statement));
+        doNothing().when(statementMapper).updateStatementFromDto(any(), any(FinishRegistrationRequestDto.class));
         when(scoringDataMapper.toDto(any(Statement.class))).thenReturn(scoringDataDto);
-        when(creditMapper.toEntity(any(CreditDto.class))).thenReturn(new Credit());
+        when(creditMapper.toEntity(any(CreditDto.class))).thenReturn(credit);
+        when(calculatorClientService.calculateCredit(any(ScoringDataDto.class))).thenReturn(creditDto);
 
-        when(restClient.post()).thenReturn(requestBodyUriSpec);
-        when(requestBodyUriSpec.uri("/calc")).thenReturn(requestBodyUriSpec);
-        when(requestBodyUriSpec.body(scoringDataDto)).thenReturn(requestBodyUriSpec);
-        when(requestBodyUriSpec.retrieve()).thenReturn(responseSpec);
-        when(responseSpec.body(CreditDto.class)).thenReturn(creditDto);
-
-        when(creditRepository.save(any())).thenReturn(expectedCredit);
-        when(statementRepository.save(any())).thenReturn(expectedStatement);
+        when(creditRepository.save(any(Credit.class))).thenReturn(credit);
+        when(statementRepository.save(any(Statement.class))).thenReturn(statement);
 
         // Действие
         dealService.finishRegistration(UUID.randomUUID().toString(), validRequestForFinishRegistration);
 
         // Проверка
-        assertThat(statement.getClient().getGender()).isEqualTo(expectedStatement.getClient().getGender());
-        assertThat(statement.getClient().getEmployment()).isEqualTo(expectedStatement.getClient().getEmployment());
-        assertThat(statement.getClient().getDependentAmount()).isEqualTo(expectedStatement.getClient().getDependentAmount());
-        assertThat(statement.getClient().getMaritalStatus()).isEqualTo(expectedStatement.getClient().getMaritalStatus());
-        assertThat(statement.getClient().getAccountNumber()).isEqualTo(expectedStatement.getClient().getAccountNumber());
+        assertThat(statement.getCredit().getCreditStatus()).isEqualTo(CreditStatus.CALCULATED);
+        assertThat(statement.getStatus()).isEqualTo(ApplicationStatus.APPROVED);
+        assertThat(statement.getStatusHistory()).hasSize(1);
+        assertThat(statement.getStatusHistory().getFirst().getStatus()).isEqualTo(String.valueOf(ApplicationStatus.APPROVED));
+        assertThat(statement.getStatusHistory().getFirst().getTime()).isEqualTo(LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS));
+        assertThat(statement.getStatusHistory().getFirst().getChangeType()).isEqualTo(ChangeType.AUTOMATIC);
     }
 
     @Test
-    void shouldThrowDealServiceExceptionForEternalServiceCalc() {
+    void shouldThrowDealDatabaseNotFoundExceptionForFinishRegistration(){
         // Подготовка
-        Statement statement = new Statement();
-        Client client = new Client();
-        Passport passport = new Passport();
-        client.setPassport(passport);
-        statement.setClient(client);
-
-        ScoringDataDto scoringDataDto = new ScoringDataDto();
-
-        Credit expectedCredit = new Credit();
-        expectedCredit.setCreditStatus(CreditStatus.CALCULATED);
-        Statement expectedStatement = new Statement();
-        Client expectedClient = new Client();
-        expectedClient.setGender(Gender.MALE);
-        expectedClient.setMaritalStatus(MaritalStatus.MARRIED);
-        expectedClient.setDependentAmount(2);
-        EmploymentDto employment = new EmploymentDto();
-        employment.setEmploymentStatus(EmploymentStatus.EMPLOYED);
-        employment.setEmployerINN("123456789012");
-        employment.setSalary(BigDecimal.valueOf(85000));
-        employment.setPosition(Position.MID_MANAGER);
-        employment.setWorkExperienceTotal(60);
-        employment.setWorkExperienceCurrent(36);
-        expectedClient.setEmployment(employment);
-        expectedClient.setAccountNumber("40817810001234567890");
-        expectedStatement.setClient(expectedClient);
-        expectedStatement.setCredit(expectedCredit);
-
         when(statementRepository.findById(any()))
-                .thenReturn(Optional.of(statement));
-        when(scoringDataMapper.toDto(any(Statement.class))).thenReturn(scoringDataDto);
-
-        when(restClient.post()).thenReturn(requestBodyUriSpec);
-        when(requestBodyUriSpec.uri("/calc")).thenReturn(requestBodyUriSpec);
-        when(requestBodyUriSpec.body(scoringDataDto)).thenReturn(requestBodyUriSpec);
-        when(requestBodyUriSpec.retrieve()).thenReturn(responseSpec);
-        when(responseSpec.body(CreditDto.class))
-                .thenThrow(new RuntimeException("Connection refused"));
+                .thenReturn(Optional.empty());
 
         // Действие и Проверка
         assertThatThrownBy(() -> dealService.finishRegistration(UUID.randomUUID().toString(), validRequestForFinishRegistration))
-                .isInstanceOf(DealExternalServiceException.class)
-                .hasMessageContaining("Ошибка при запросе в другой сервис");
-    }
-
-    @Test
-    void shouldThrowDealServiceExceptionForNullResponse() {
-        // Подготовка
-        Statement statement = new Statement();
-        Client client = new Client();
-        Passport passport = new Passport();
-        client.setPassport(passport);
-        statement.setClient(client);
-
-        ScoringDataDto scoringDataDto = new ScoringDataDto();
-
-        Credit expectedCredit = new Credit();
-        expectedCredit.setCreditStatus(CreditStatus.CALCULATED);
-        Statement expectedStatement = new Statement();
-        Client expectedClient = new Client();
-        expectedClient.setGender(Gender.MALE);
-        expectedClient.setMaritalStatus(MaritalStatus.MARRIED);
-        expectedClient.setDependentAmount(2);
-        EmploymentDto employment = new EmploymentDto();
-        employment.setEmploymentStatus(EmploymentStatus.EMPLOYED);
-        employment.setEmployerINN("123456789012");
-        employment.setSalary(BigDecimal.valueOf(85000));
-        employment.setPosition(Position.MID_MANAGER);
-        employment.setWorkExperienceTotal(60);
-        employment.setWorkExperienceCurrent(36);
-        expectedClient.setEmployment(employment);
-        expectedClient.setAccountNumber("40817810001234567890");
-        expectedStatement.setClient(expectedClient);
-        expectedStatement.setCredit(expectedCredit);
-
-        when(statementRepository.findById(any()))
-                .thenReturn(Optional.of(statement));
-        when(scoringDataMapper.toDto(any(Statement.class))).thenReturn(scoringDataDto);
-
-        when(restClient.post()).thenReturn(requestBodyUriSpec);
-        when(requestBodyUriSpec.uri("/calc")).thenReturn(requestBodyUriSpec);
-        when(requestBodyUriSpec.body(scoringDataDto)).thenReturn(requestBodyUriSpec);
-        when(requestBodyUriSpec.retrieve()).thenReturn(responseSpec);
-        when(responseSpec.body(CreditDto.class))
-                .thenReturn(null);
-
-        // Действие и Проверка
-        assertThatThrownBy(() -> dealService.finishRegistration(UUID.randomUUID().toString(), validRequestForFinishRegistration))
-                .isInstanceOf(DealExternalServiceException.class)
-                .hasMessageContaining("Полученные данные равны null");
+                .isInstanceOf(DealDatabaseNotFoundException.class)
+                .hasMessageContaining("Заявка не найдена");
     }
 }
