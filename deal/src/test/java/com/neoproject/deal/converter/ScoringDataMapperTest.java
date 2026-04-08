@@ -7,6 +7,7 @@ import com.neoproject.deal.model.entity.Client;
 import com.neoproject.deal.model.entity.Passport;
 import com.neoproject.deal.model.entity.Statement;
 import com.neoproject.deal.model.enums.*;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -17,6 +18,7 @@ import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+@DisplayName("Тесты маппера для dto скоринга")
 @ExtendWith(MockitoExtension.class)
 class ScoringDataMapperTest {
 

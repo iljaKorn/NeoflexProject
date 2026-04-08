@@ -2,12 +2,14 @@ package com.neoproject.deal.converter;
 
 import com.neoproject.deal.model.dto.CreditDto;
 import com.neoproject.deal.model.entity.Credit;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+@DisplayName("Тесты маппера для сущности Кредит")
 @ExtendWith(MockitoExtension.class)
 class CreditMapperTest {
 

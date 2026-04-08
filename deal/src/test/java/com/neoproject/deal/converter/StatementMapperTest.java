@@ -6,6 +6,7 @@ import com.neoproject.deal.model.entity.Client;
 import com.neoproject.deal.model.entity.Statement;
 import com.neoproject.deal.model.enums.Gender;
 import com.neoproject.deal.model.enums.MaritalStatus;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -14,6 +15,7 @@ import java.time.LocalDate;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
+@DisplayName("Тесты маппера для сущности Заявка")
 @ExtendWith(MockitoExtension.class)
 class StatementMapperTest {
 
