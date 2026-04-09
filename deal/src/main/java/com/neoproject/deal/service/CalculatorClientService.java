@@ -39,7 +39,7 @@ public class CalculatorClientService {
                     .body(new ParameterizedTypeReference<>() {
                     });
         } catch (Exception e) {
-            log.error("Произошла ошибка в методе getOffers: {}", e.getMessage());
+            log.error("Произошла ошибка в методе getOffers: ", e);
             throw new DealExternalServiceException("Ошибка при запросе в сервис калькулятора");
         }
         if (offers == null) {
@@ -64,7 +64,7 @@ public class CalculatorClientService {
                     .retrieve()
                     .body(CreditDto.class);
         } catch (Exception e) {
-            log.error("Произошла ошибка в методе calculateCredit: {}", e.getMessage());
+            log.error("Произошла ошибка в методе calculateCredit: ", e);
             throw new DealExternalServiceException("Ошибка при запросе в сервис калькулятора");
         }
         if (creditDto == null) {
