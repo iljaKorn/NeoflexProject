@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                   https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <changeSet id="1" author="ilyaKorn">
+        <sqlFile path="0.0.1/create_table_client.sql"
+                 relativeToChangelogFile="true"/>
+        <rollback>
+            <sqlFile path="0.0.1/rollback/create_table_client_rollback.sql"
+                     relativeToChangelogFile="true"/>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="2" author="ilyaKorn">
+        <sqlFile path="0.0.1/create_table_credit.sql"
+                 relativeToChangelogFile="true"/>
+        <rollback>
+            <sqlFile path="0.0.1/rollback/create_table_credit_rollback.sql"
+                     relativeToChangelogFile="true"/>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="3" author="ilyaKorn">
+        <sqlFile path="0.0.1/create_table_statement.sql"
+                 relativeToChangelogFile="true"/>
+        <rollback>
+            <sqlFile path="0.0.1/rollback/create_table_statement_rollback.sql"
+                     relativeToChangelogFile="true"/>
+        </rollback>
+    </changeSet>
+</databaseChangeLog>
