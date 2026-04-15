@@ -7,6 +7,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.validation.annotation.Validated;
@@ -34,7 +35,7 @@ public class StatementController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Предложения успешно сформированы и представлены")})
 
-    public List<LoanOfferDto> getOffers(@RequestBody LoanStatementRequestDto dto){
+    public List<LoanOfferDto> getOffers(@Valid @RequestBody LoanStatementRequestDto dto){
         log.info("Пришли данные для расчета условий кредита: {}", dto);
         List<LoanOfferDto> offers = statementService.getOffers(dto);
         log.info("Рассчитаны различные условия кредита: {}", offers);
@@ -45,7 +46,7 @@ public class StatementController {
     @Operation(summary = "Выбор одного из предложений")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Предложение успешно выбрано")})
-    public void selectOffer(@RequestBody LoanOfferDto dto){
+    public void selectOffer(@Valid @RequestBody LoanOfferDto dto){
         log.info("Пришло предложение для подтверждения: {}", dto);
         statementService.selectOffer(dto);
         log.info("Предложение принято: {}", dto);

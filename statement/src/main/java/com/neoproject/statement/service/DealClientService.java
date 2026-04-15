@@ -11,6 +11,9 @@ import org.springframework.web.client.RestClient;
 
 import java.util.List;
 
+/**
+ * Сервис для отправки запросов на модуль сделок
+ */
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -18,6 +21,11 @@ public class DealClientService {
 
     private final RestClient restClient;
 
+    /**
+     * Метод для получения всех возможных условий кредита от модуля сделок
+     *
+     * @param dto специальный объект со всеми входными данными для составления различных условий кредита
+     */
     public List<LoanOfferDto> getOffers(LoanStatementRequestDto dto){
         List<LoanOfferDto> offers;
 
@@ -40,10 +48,15 @@ public class DealClientService {
         return offers;
     }
 
+    /**
+     * Метод для выбора одного из предложений по кредиту
+     *
+     * @param dto специальный объект со всеми входными данными по одному из предложений
+     */
     public void selectOffer(LoanOfferDto dto){
         try {
             restClient.post()
-                    .uri("/statement")
+                    .uri("/offer/select")
                     .body(dto)
                     .retrieve()
                     .body(new ParameterizedTypeReference<>() {
