@@ -41,7 +41,7 @@ class StatementControllerTest {
     }
 
     @Test
-    @DisplayName("POST /statement-api/statement - успешный расчет предложений и сохранение в базу данных")
+    @DisplayName("POST /statement - успешный расчет предложений и сохранение в базу данных")
     void getOffersCorrectly() throws Exception {
         // Подготовка
         LoanStatementRequestDto request = new LoanStatementRequestDto();
@@ -58,7 +58,7 @@ class StatementControllerTest {
         when(dealService.getOffers(any())).thenReturn(List.of());
 
         // Действие и Проверка
-        mockMvc.perform(post("/statement-api/statement")
+        mockMvc.perform(post("/statement")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
@@ -68,7 +68,7 @@ class StatementControllerTest {
     }
 
     @Test
-    @DisplayName("POST /statement-api/statement - ошибки валидации")
+    @DisplayName("POST /statement - ошибки валидации")
     void shouldThrowValidationException() throws Exception {
         // Подготовка
         LoanStatementRequestDto request = new LoanStatementRequestDto();
@@ -81,7 +81,7 @@ class StatementControllerTest {
         when(dealService.getOffers(any())).thenReturn(List.of());
 
         // Действие и Проверка
-        mockMvc.perform(post("/statement-api/statement")
+        mockMvc.perform(post("/statement")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest());
@@ -90,7 +90,7 @@ class StatementControllerTest {
     }
 
     @Test
-    @DisplayName("POST /statement-api/statement/offer - выбор предложения и сохранение в базу данных")
+    @DisplayName("POST /statement/offer - выбор предложения и сохранение в базу данных")
     void selectOfferCorrectly() throws Exception {
         // Подготовка
         LoanOfferDto request = new LoanOfferDto();
@@ -106,7 +106,7 @@ class StatementControllerTest {
         doNothing().when(dealService).selectOffer(any());
 
         // Действие и Проверка
-        mockMvc.perform(post("/statement-api/statement/offer")
+        mockMvc.perform(post("/statement/offer")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk());
@@ -115,7 +115,7 @@ class StatementControllerTest {
     }
 
     @Test
-    @DisplayName("POST /statement-api/statement/offer - ошибки валидации")
+    @DisplayName("POST /statement/offer - ошибки валидации")
     void shouldThrowValidationExceptionForSelectOffer() throws Exception {
         // Подготовка
         LoanOfferDto request = new LoanOfferDto();
@@ -130,7 +130,7 @@ class StatementControllerTest {
         doNothing().when(dealService).selectOffer(any());
 
         // Действие и Проверка
-        mockMvc.perform(post("/statement-api/statement/offer")
+        mockMvc.perform(post("/statement/offer")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest());

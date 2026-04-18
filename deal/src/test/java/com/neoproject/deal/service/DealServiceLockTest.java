@@ -6,22 +6,23 @@ import com.neoproject.deal.model.enums.ApplicationStatus;
 import com.neoproject.deal.repository.StatementRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
+import org.mockito.internal.stubbing.answers.AnswersWithDelay;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.*;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.web.client.RestClient;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.util.UUID;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.doAnswer;
 
 @Testcontainers
 @SpringBootTest
@@ -38,7 +39,7 @@ public class DealServiceLockTest {
         registry.add("spring.datasource.url", postgreSQLContainer::getJdbcUrl);
     }
 
-    @Autowired
+    @MockitoSpyBean
     private DealService dealService;
 
     @Autowired
@@ -68,33 +69,40 @@ public class DealServiceLockTest {
         LoanOfferDto offerDto = new LoanOfferDto();
         offerDto.setStatementId(statementId1);
 
+        doAnswer(new AnswersWithDelay(2000, invocation -> {
+            return invocation.callRealMethod();
+        })).when(dealService).selectOffer(Mockito.any(LoanOfferDto.class));
+
+        CompletableFuture<Long> firstThreadTiming = new CompletableFuture<>();
+        CompletableFuture<Long> secondThreadTiming = new CompletableFuture<>();
+
         // Действие
         try (ExecutorService executor = Executors.newFixedThreadPool(2)) {
-            CountDownLatch latch = new CountDownLatch(2);
-
             executor.submit(() -> {
-                try {
-                    dealService.selectOffer(offerDto);
-                } finally {
-                    latch.countDown();
-                }
+                long start = System.currentTimeMillis();
+                dealService.selectOffer(offerDto);
+                firstThreadTiming.complete(System.currentTimeMillis() - start);
             });
 
             executor.submit(() -> {
                 try {
-                    dealService.selectOffer(offerDto);
-                } finally {
-                    latch.countDown();
+                    Thread.sleep(500);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
                 }
+                long start = System.currentTimeMillis();
+                dealService.selectOffer(offerDto);
+                secondThreadTiming.complete(System.currentTimeMillis() - start);
             });
-
-            boolean completed = latch.await(10, TimeUnit.SECONDS);
-
-            // Проверка
-            assertThat(completed).isTrue();
         }
 
+        long firstDuration = firstThreadTiming.get(5, TimeUnit.SECONDS);
+        long secondDuration = secondThreadTiming.get(5, TimeUnit.SECONDS);
+
         // Проверка
+        assertThat(firstDuration).isBetween(1900L, 2500L);
+        assertThat(secondDuration).isGreaterThan(1500L);
+
         Statement statement = statementRepository.findById(statementId1).orElseThrow();
         assertThat(statement.getStatus()).isEqualTo(ApplicationStatus.PREAPPROVAL);
         assertThat(statement.getAppliedOffer()).isNotNull();
@@ -110,33 +118,40 @@ public class DealServiceLockTest {
         LoanOfferDto offerDto2 = new LoanOfferDto();
         offerDto2.setStatementId(statementId2);
 
+        doAnswer(new AnswersWithDelay(2000, invocation -> {
+            return invocation.callRealMethod();
+        })).when(dealService).selectOffer(Mockito.any(LoanOfferDto.class));
+
+        CompletableFuture<Long> firstThreadTiming = new CompletableFuture<>();
+        CompletableFuture<Long> secondThreadTiming = new CompletableFuture<>();
+
         // Действие
         try (ExecutorService executor = Executors.newFixedThreadPool(2)) {
-            CountDownLatch latch = new CountDownLatch(2);
-
             executor.submit(() -> {
-                try {
-                    dealService.selectOffer(offerDto1);
-                } finally {
-                    latch.countDown();
-                }
+                long start = System.currentTimeMillis();
+                dealService.selectOffer(offerDto1);
+                firstThreadTiming.complete(System.currentTimeMillis() - start);
             });
 
             executor.submit(() -> {
                 try {
-                    dealService.selectOffer(offerDto2);
-                } finally {
-                    latch.countDown();
+                    Thread.sleep(500);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
                 }
+                long start = System.currentTimeMillis();
+                dealService.selectOffer(offerDto2);
+                secondThreadTiming.complete(System.currentTimeMillis() - start);
             });
-
-            boolean completed = latch.await(10, TimeUnit.SECONDS);
-
-            // Проверка
-            assertThat(completed).isTrue();
         }
 
+        long firstDuration = firstThreadTiming.get(5, TimeUnit.SECONDS);
+        long secondDuration = secondThreadTiming.get(5, TimeUnit.SECONDS);
+
         // Проверка
+        assertThat(firstDuration).isBetween(1900L, 2500L);
+        assertThat(secondDuration).isGreaterThan(1500L);
+
         Statement statement1 = statementRepository.findById(statementId1).orElseThrow();
         assertThat(statement1.getStatus()).isEqualTo(ApplicationStatus.PREAPPROVAL);
         assertThat(statement1.getAppliedOffer()).isNotNull();

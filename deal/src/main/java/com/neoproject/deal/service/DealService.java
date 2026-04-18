@@ -82,16 +82,8 @@ public class DealService {
                 .orElseThrow(() -> new DealDatabaseNotFoundException("Заявка не найдена"));
 
         if (statement.getStatus() == ApplicationStatus.PREAPPROVAL) {
-            log.debug("Заявка с id: {} уже обработана", dto.getStatementId());
+            log.warn("Заявка с id: {} уже обработана", dto.getStatementId());
             return;
-        }
-
-        // имитация долгой бизнес логики для проверки блокировки
-        try {
-            Thread.sleep(2000);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            throw new RuntimeException("Поток прерван", e);
         }
 
         updateStatus(statement, ApplicationStatus.PREAPPROVAL);

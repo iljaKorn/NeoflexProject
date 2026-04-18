@@ -20,7 +20,7 @@ import java.util.List;
 
 @Slf4j
 @RestController
-@RequestMapping("/statement-api")
+@RequestMapping("/statement")
 @RequiredArgsConstructor
 @Validated
 @Tag(name = "Контроллер сервиса сделок", description = "Контроллер для обработки запросов для модуля сделок")
@@ -30,7 +30,7 @@ public class StatementController {
 
     private final StatementService statementService;
 
-    @PostMapping("/statement")
+    @PostMapping()
     @Operation(summary = "Расчёт возможных условий кредита")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Предложения успешно сформированы и представлены")})
@@ -42,7 +42,7 @@ public class StatementController {
         return offers;
     }
 
-    @PostMapping("/statement/offer")
+    @PostMapping("/offer")
     @Operation(summary = "Выбор одного из предложений")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Предложение успешно выбрано")})
