@@ -154,7 +154,7 @@ class DealServiceTest {
         statusHistory.add(newStatus);
         expectedStatement.setStatusHistory(statusHistory);
 
-        when(statementRepository.findById(any()))
+        when(statementRepository.findByIdWithLock(any()))
                 .thenReturn(Optional.of(statementFromDB));
         when(statementRepository.save(any(Statement.class)))
                 .thenReturn(expectedStatement);
@@ -172,7 +172,7 @@ class DealServiceTest {
     @Test
     void shouldThrowDealDatabaseNotFoundExceptionForCalculateCredit() {
         // Подготовка
-        when(statementRepository.findById(any()))
+        when(statementRepository.findByIdWithLock(any()))
                 .thenReturn(Optional.empty());
 
         // Действие и Проверка

@@ -15,6 +15,7 @@ import com.neoproject.deal.model.enums.CreditStatus;
 import com.neoproject.deal.repository.ClientRepository;
 import com.neoproject.deal.repository.CreditRepository;
 import com.neoproject.deal.repository.StatementRepository;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -75,9 +76,16 @@ public class DealService {
      *
      * @param dto специальный объект со всеми входными данными по одному из предложений
      */
+    @Transactional
     public void selectOffer(LoanOfferDto dto) {
-        Statement statement = statementRepository.findById(dto.getStatementId())
+        Statement statement = statementRepository.findByIdWithLock(dto.getStatementId())
                 .orElseThrow(() -> new DealDatabaseNotFoundException("Заявка не найдена"));
+
+        if (statement.getStatus() == ApplicationStatus.PREAPPROVAL) {
+            log.warn("Заявка с id: {} уже обработана", dto.getStatementId());
+            return;
+        }
+
         updateStatus(statement, ApplicationStatus.PREAPPROVAL);
         statement.setAppliedOffer(dto);
         statementRepository.save(statement);
