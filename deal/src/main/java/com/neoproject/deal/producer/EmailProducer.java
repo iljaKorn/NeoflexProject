@@ -48,7 +48,7 @@ public class EmailProducer {
         emailMessage.setAddress("kornilov.ilja@rambler.ru");
         emailMessage.setTheme(Theme.CREATE_DOCUMENTS);
         emailMessage.setStatementId(statementId);
-        emailMessage.setText("Перейти к оформлению документов");
+        emailMessage.setText("Условия кредита выбраны, далее необходимо оформить документы");
 
         kafkaTemplate.send(createDocumentTopic, emailMessage);
         log.info("Отправлено сообщение с данными для создания документов: {}", emailMessage);
@@ -60,7 +60,7 @@ public class EmailProducer {
         emailMessage.setAddress("kornilov.ilja@rambler.ru");
         emailMessage.setTheme(Theme.SEND_DOCUMENTS);
         emailMessage.setStatementId(statementId);
-        emailMessage.setText("Подписать документы");
+        emailMessage.setText("Документы сформированы и готовы к подписанию");
 
         kafkaTemplate.send(sendDocumentTopic, emailMessage);
         log.info("Отправлено сообщение с данными для отправки документов: {}", emailMessage);
@@ -71,7 +71,7 @@ public class EmailProducer {
         emailMessage.setAddress("kornilov.ilja@rambler.ru");
         emailMessage.setTheme(Theme.SEND_SES);
         emailMessage.setStatementId(statementId);
-        emailMessage.setText("Код для подписи: " + ses_code);
+        emailMessage.setText("Код для подписания документов: " + ses_code);
 
         kafkaTemplate.send(requestToSignDocumentTopic, emailMessage);
         log.info("Отправлено сообщение с данными для запроса подписи документов: {}", emailMessage);

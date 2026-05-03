@@ -10,6 +10,7 @@ import com.neoproject.deal.model.entity.Client;
 import com.neoproject.deal.model.entity.Credit;
 import com.neoproject.deal.model.entity.Statement;
 import com.neoproject.deal.model.enums.*;
+import com.neoproject.deal.producer.EmailProducer;
 import com.neoproject.deal.repository.ClientRepository;
 import com.neoproject.deal.repository.CreditRepository;
 import com.neoproject.deal.repository.StatementRepository;
@@ -60,6 +61,9 @@ class DealServiceTest {
 
     @Mock
     private CalculatorClientService calculatorClientService;
+
+    @Mock
+    private EmailProducer emailProducer;
 
     private LoanStatementRequestDto validRequestForGetOffers;
     private LoanOfferDto validRequestForSelectOneOffer;
@@ -158,6 +162,7 @@ class DealServiceTest {
                 .thenReturn(Optional.of(statementFromDB));
         when(statementRepository.save(any(Statement.class)))
                 .thenReturn(expectedStatement);
+        doNothing().when(emailProducer).produceMessageForFinishRegistration(any());
 
         // Действие
         dealService.selectOffer(validRequestForSelectOneOffer);
@@ -199,14 +204,16 @@ class DealServiceTest {
         when(creditRepository.save(any(Credit.class))).thenReturn(credit);
         when(statementRepository.save(any(Statement.class))).thenReturn(statement);
 
+        doNothing().when(emailProducer).produceMessageForCreateDocument(any());
+
         // Действие
         dealService.finishRegistration(UUID.randomUUID().toString(), validRequestForFinishRegistration);
 
         // Проверка
         assertThat(statement.getCredit().getCreditStatus()).isEqualTo(CreditStatus.CALCULATED);
-        assertThat(statement.getStatus()).isEqualTo(ApplicationStatus.APPROVED);
+        assertThat(statement.getStatus()).isEqualTo(ApplicationStatus.CC_APPROVED);
         assertThat(statement.getStatusHistory()).hasSize(1);
-        assertThat(statement.getStatusHistory().getFirst().getStatus()).isEqualTo(String.valueOf(ApplicationStatus.APPROVED));
+        assertThat(statement.getStatusHistory().getFirst().getStatus()).isEqualTo(String.valueOf(ApplicationStatus.CC_APPROVED));
         assertThat(statement.getStatusHistory().getFirst().getTime()).isEqualTo(LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS));
         assertThat(statement.getStatusHistory().getFirst().getChangeType()).isEqualTo(ChangeType.AUTOMATIC);
     }
@@ -221,5 +228,112 @@ class DealServiceTest {
         assertThatThrownBy(() -> dealService.finishRegistration(UUID.randomUUID().toString(), validRequestForFinishRegistration))
                 .isInstanceOf(DealDatabaseNotFoundException.class)
                 .hasMessageContaining("Заявка не найдена");
+    }
+
+    @Test
+    void shouldSendDocumentsCorrectly() {
+        // Подготовка
+        Statement statement = new Statement();
+        statement.setStatementId(UUID.randomUUID());
+
+        when(statementRepository.findById(any())).thenReturn(Optional.of(statement));
+        when(statementRepository.save(any(Statement.class))).thenReturn(statement);
+        doNothing().when(emailProducer).produceMessageForSendDocuments(any());
+
+        // Действие
+        dealService.sendDocuments(UUID.randomUUID().toString());
+
+        // Проверка
+        assertThat(statement.getStatusHistory()).hasSize(2);
+        assertThat(statement.getStatusHistory().getFirst().getStatus()).isEqualTo(String.valueOf(ApplicationStatus.PREPARE_DOCUMENTS));
+        assertThat(statement.getStatusHistory().get(1).getStatus()).isEqualTo(String.valueOf(ApplicationStatus.DOCUMENT_CREATED));
+    }
+
+    @Test
+    void shouldThrowDealDatabaseNotFoundExceptionForSendDocument() {
+        // Подготовка
+        when(statementRepository.findById(any())).thenReturn(Optional.empty());
+
+        // Действие и Проверка
+        assertThatThrownBy(() -> dealService.sendDocuments(UUID.randomUUID().toString()))
+                .isInstanceOf(DealDatabaseNotFoundException.class)
+                .hasMessageContaining("Заявка не найдена");
+    }
+
+    @Test
+    void shouldRequestForSignDocumentsCorrectly() {
+        // Подготовка
+        Statement statement = new Statement();
+        statement.setStatementId(UUID.randomUUID());
+
+        when(statementRepository.findById(any())).thenReturn(Optional.of(statement));
+        when(statementRepository.save(any(Statement.class))).thenReturn(statement);
+        doNothing().when(emailProducer).produceMessageForRequestToSign(any(), any());
+
+        // Действие
+        dealService.requestForSignDocuments(UUID.randomUUID().toString());
+
+        // Проверка
+        assertThat(statement.getSesCode().length()).isEqualTo(6);
+    }
+
+    @Test
+    void shouldThrowDealDatabaseNotFoundExceptionForRequestToSignDocument() {
+        // Подготовка
+        when(statementRepository.findById(any())).thenReturn(Optional.empty());
+
+        // Действие и Проверка
+        assertThatThrownBy(() -> dealService.requestForSignDocuments(UUID.randomUUID().toString()))
+                .isInstanceOf(DealDatabaseNotFoundException.class)
+                .hasMessageContaining("Заявка не найдена");
+    }
+
+    @Test
+    void shouldSignDocumentsCorrectly() {
+        // Подготовка
+        Statement statement = new Statement();
+        Credit credit = new Credit();
+        statement.setCredit(credit);
+        statement.setSesCode("123456");
+        statement.setStatementId(UUID.randomUUID());
+
+        when(statementRepository.findById(any())).thenReturn(Optional.of(statement));
+        when(statementRepository.save(any(Statement.class))).thenReturn(statement);
+        doNothing().when(emailProducer).produceMessageForSignDocuments(any());
+
+        // Действие
+        dealService.signDocuments(UUID.randomUUID().toString(), "123456");
+
+        // Проверка
+        assertThat(statement.getStatusHistory()).hasSize(2);
+        assertThat(statement.getStatusHistory().getFirst().getStatus()).isEqualTo(ApplicationStatus.DOCUMENT_SIGNED.name());
+        assertThat(statement.getStatusHistory().get(1).getStatus()).isEqualTo(ApplicationStatus.CREDIT_ISSUED.name());
+        assertThat(statement.getSignDate()).isEqualTo(LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS));
+        assertThat(statement.getCredit().getCreditStatus()).isEqualTo(CreditStatus.ISSUED);
+    }
+
+    @Test
+    void shouldThrowDealDatabaseNotFoundExceptionForSignDocument() {
+        // Подготовка
+        when(statementRepository.findById(any())).thenReturn(Optional.empty());
+
+        // Действие и Проверка
+        assertThatThrownBy(() -> dealService.signDocuments(UUID.randomUUID().toString(), any()))
+                .isInstanceOf(DealDatabaseNotFoundException.class)
+                .hasMessageContaining("Заявка не найдена");
+    }
+
+    @Test
+    void shouldThrowIllegalArgumentExceptionForSignDocument() {
+        // Подготовка
+        Statement statement = new Statement();
+        statement.setStatementId(UUID.randomUUID());
+        statement.setSesCode("123456");
+        when(statementRepository.findById(any())).thenReturn(Optional.of(statement));
+
+        // Действие и Проверка
+        assertThatThrownBy(() -> dealService.signDocuments(UUID.randomUUID().toString(), "123455"))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Не совпадает ses код");
     }
 }

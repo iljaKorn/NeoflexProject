@@ -59,7 +59,6 @@ public class DealController {
         log.info("Регистрация пользователя завершена с statementId: {}", statementId);
     }
 
-
     @PostMapping("/document/{statementId}/send")
     @Operation(summary = "Отправка документов пользователю")
     @ApiResponses(value = {
