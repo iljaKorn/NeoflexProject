@@ -21,6 +21,15 @@ public class EmailProducer {
     @Value("${spring.kafka.topics.create-documents}")
     private String createDocumentTopic;
 
+    @Value("${spring.kafka.topics.send-documents}")
+    private String sendDocumentTopic;
+
+    @Value("${spring.kafka.topics.send-ses}")
+    private String requestToSignDocumentTopic;
+
+    @Value("${spring.kafka.topics.credit-issued}")
+    private String creditIssuedTopic;
+
     private final KafkaTemplate<String , EmailMessage> kafkaTemplate;
 
     public void produceMessageForFinishRegistration(UUID statementId) {
@@ -41,5 +50,35 @@ public class EmailProducer {
         emailMessage.setText("Перейти к оформлению документов.");
 
         kafkaTemplate.send(createDocumentTopic, emailMessage);
+    }
+
+    public void produceMessageForSendDocuments(UUID statementId) {
+        EmailMessage emailMessage = new EmailMessage();
+        emailMessage.setAddress("kornilov.ilja@rambler.ru");
+        emailMessage.setTheme(Theme.SEND_DOCUMENTS);
+        emailMessage.setStatementId(statementId);
+        emailMessage.setText("Подписать документы.");
+
+        kafkaTemplate.send(sendDocumentTopic, emailMessage);
+    }
+
+    public void produceMessageForRequestToSign(UUID statementId, String ses_code) {
+        EmailMessage emailMessage = new EmailMessage();
+        emailMessage.setAddress("kornilov.ilja@rambler.ru");
+        emailMessage.setTheme(Theme.SEND_SES);
+        emailMessage.setStatementId(statementId);
+        emailMessage.setText("Код для подписи: " + ses_code);
+
+        kafkaTemplate.send(requestToSignDocumentTopic, emailMessage);
+    }
+
+    public void produceMessageForSignDocuments(UUID statementId) {
+        EmailMessage emailMessage = new EmailMessage();
+        emailMessage.setAddress("kornilov.ilja@rambler.ru");
+        emailMessage.setTheme(Theme.CREDIT_ISSUED);
+        emailMessage.setStatementId(statementId);
+        emailMessage.setText("Кредит одобрен");
+
+        kafkaTemplate.send(creditIssuedTopic, emailMessage);
     }
 }

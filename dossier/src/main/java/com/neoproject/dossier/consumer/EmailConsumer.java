@@ -25,4 +25,22 @@ public class EmailConsumer {
         log.info("Пришло сообщение с данными для создания документов: {}", message);
         mailService.createDocuments(message);
     }
+
+    @KafkaListener(topics = "${spring.kafka.topics.send-documents}")
+    public void consumeMessageForSendDocuments(EmailMessage message) {
+        log.info("Пришло сообщение с данными для отправки документов: {}", message);
+        mailService.sendDocuments(message);
+    }
+
+    @KafkaListener(topics = "${spring.kafka.topics.send-ses}")
+    public void consumeMessageForRequestToSignDocuments(EmailMessage message) {
+        log.info("Пришло сообщение с данными для отправки кода: {}", message);
+        mailService.requestToSignDocuments(message);
+    }
+
+    @KafkaListener(topics = "${spring.kafka.topics.credit-issued}")
+    public void consumeMessageForSignDocuments(EmailMessage message) {
+        log.info("Пришло сообщение с данными для одобрения кредита: {}", message);
+        mailService.signDocuments(message);
+    }
 }

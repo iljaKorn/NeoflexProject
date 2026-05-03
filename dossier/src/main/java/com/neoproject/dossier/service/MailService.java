@@ -35,4 +35,34 @@ public class MailService {
 
         mailSender.send(messageToEmail);
     }
+
+    public void sendDocuments(EmailMessage message) {
+        SimpleMailMessage messageToEmail = new SimpleMailMessage();
+        messageToEmail.setFrom(emailAddressFrom);
+        messageToEmail.setTo(message.getAddress());
+        messageToEmail.setSubject("Документы на кредит");
+        messageToEmail.setText(message.getText());
+
+        mailSender.send(messageToEmail);
+    }
+
+    public void requestToSignDocuments(EmailMessage message) {
+        SimpleMailMessage messageToEmail = new SimpleMailMessage();
+        messageToEmail.setFrom(emailAddressFrom);
+        messageToEmail.setTo(message.getAddress());
+        messageToEmail.setSubject("Подписание документов");
+        messageToEmail.setText(message.getText());
+
+        mailSender.send(messageToEmail);
+    }
+
+    public void signDocuments(EmailMessage message) {
+        SimpleMailMessage messageToEmail = new SimpleMailMessage();
+        messageToEmail.setFrom(emailAddressFrom);
+        messageToEmail.setTo(message.getAddress());
+        messageToEmail.setSubject("Выдача кредита");
+        messageToEmail.setText(message.getText());
+
+        mailSender.send(messageToEmail);
+    }
 }

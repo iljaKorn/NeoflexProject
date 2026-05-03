@@ -25,6 +25,7 @@ import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 import java.util.UUID;
 
 /**
@@ -146,7 +147,55 @@ public class DealService {
         statement.setStatusHistory(statusHistory);
     }
 
-    public void sendDocuments(UUID statementId) {
-        System.out.println("Good " + statementId);
+    public void sendDocuments(String statementId) {
+        Statement statement = statementRepository.findById(UUID.fromString(statementId))
+                .orElseThrow(() -> new DealDatabaseNotFoundException("Заявка не найдена"));
+
+        updateStatus(statement, ApplicationStatus.PREPARE_DOCUMENTS);
+        statementRepository.save(statement);
+        log.debug("Обновлен статус заявки {}", statement);
+
+        emailProducer.produceMessageForSendDocuments(statement.getStatementId());
+
+        updateStatus(statement, ApplicationStatus.DOCUMENT_CREATED);
+        statementRepository.save(statement);
+        log.debug("Обновлен статус заявки {}", statement);
+    }
+
+    public void requestForSignDocuments(String statementId) {
+        Statement statement = statementRepository.findById(UUID.fromString(statementId))
+                .orElseThrow(() -> new DealDatabaseNotFoundException("Заявка не найдена"));
+
+        StringBuilder code = new StringBuilder();
+        Random random = new Random();
+        for (int i = 0; i < 6; i++) {
+            code.append(random.nextInt(10));
+        }
+
+        statement.setSesCode(code.toString());
+        statementRepository.save(statement);
+        log.debug("Добавлен ПЭП код {}", statement);
+
+        emailProducer.produceMessageForRequestToSign(statement.getStatementId(), code.toString());
+    }
+
+    public void signDocuments(String statementId, String code) {
+        Statement statement = statementRepository.findById(UUID.fromString(statementId))
+                .orElseThrow(() -> new DealDatabaseNotFoundException("Заявка не найдена"));
+
+        if(!code.equals(statement.getSesCode())){
+            throw new RuntimeException("Не совпадает код");
+        }
+
+        statement.setSignDate(LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS));
+        updateStatus(statement, ApplicationStatus.DOCUMENT_SIGNED);
+        statementRepository.save(statement);
+        log.debug("Заявка оформлена и сохранена в базе данных {}", statement);
+
+        emailProducer.produceMessageForSignDocuments(statement.getStatementId());
+
+        updateStatus(statement, ApplicationStatus.CREDIT_ISSUED);
+        statementRepository.save(statement);
+        log.debug("Обновлен статус заявки {}", statement);
     }
 }
