@@ -12,6 +12,7 @@ import com.neoproject.deal.model.entity.Statement;
 import com.neoproject.deal.model.enums.ApplicationStatus;
 import com.neoproject.deal.model.enums.ChangeType;
 import com.neoproject.deal.model.enums.CreditStatus;
+import com.neoproject.deal.producer.EmailProducer;
 import com.neoproject.deal.repository.ClientRepository;
 import com.neoproject.deal.repository.CreditRepository;
 import com.neoproject.deal.repository.StatementRepository;
@@ -44,6 +45,7 @@ public class DealService {
     private final StatementMapper statementMapper;
 
     private final CalculatorClientService calculatorClientService;
+    private final EmailProducer emailProducer;
 
     /**
      * Метод для получения всех возможных условий кредита и сохранения этих данных в базу
@@ -91,6 +93,8 @@ public class DealService {
         statement.setAppliedOffer(dto);
         statementRepository.save(statement);
         log.debug("В базе обновлены данные о сделке: {}", statement);
+
+        emailProducer.produceMessageForFinishRegistration(statement.getStatementId());
     }
 
     /**
@@ -113,9 +117,11 @@ public class DealService {
         log.debug("В базу добавлены данные о кредите: {}", credit);
 
         statement.setCredit(credit);
-        updateStatus(statement, ApplicationStatus.APPROVED);
+        updateStatus(statement, ApplicationStatus.CC_APPROVED);
         statementRepository.save(statement);
         log.debug("В базу добавлены финальные данные о сделке: {}", statement);
+
+        emailProducer.produceMessageForCreateDocument(statement.getStatementId());
     }
 
     /**
@@ -138,5 +144,9 @@ public class DealService {
         newStatus.setChangeType(ChangeType.AUTOMATIC);
         statusHistory.add(newStatus);
         statement.setStatusHistory(statusHistory);
+    }
+
+    public void sendDocuments(UUID statementId) {
+        System.out.println("Good " + statementId);
     }
 }

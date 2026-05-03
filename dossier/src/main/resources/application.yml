@@ -1,6 +1,18 @@
 spring:
   application:
     name: dossier
+  mail:
+    host: smtp.yandex.ru
+    port: 465
+    protocol: smtps
+    username: il.kornilow@yandex.ru
+    password: ayvrkedkcvthcjpy
+    properties:
+      mail:
+        smtp:
+          auth: true
+          ssl:
+            enabled: true
   kafka:
     topics:
       finish-registration: finish-registration

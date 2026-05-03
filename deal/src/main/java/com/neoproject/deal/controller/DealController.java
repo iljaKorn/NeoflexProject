@@ -15,6 +15,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.UUID;
 
 @Slf4j
 @RestController
@@ -57,5 +58,12 @@ public class DealController {
         log.info("Пришли данные для завершения регистрации statementId: {}, dto: {}", statementId, dto);
         dealService.finishRegistration(statementId, dto);
         log.info("Регистрация пользователя завершена с statementId: {}", statementId);
+    }
+
+    @PostMapping("/document/{statementId}/send")
+    public void sendDocument(@PathVariable UUID statementId){
+        log.info("Пришли данные для отправки документов с id: {}", statementId);
+        dealService.sendDocuments(statementId);
+        log.info("Документы отправлены с id: {}", statementId);
     }
 }
