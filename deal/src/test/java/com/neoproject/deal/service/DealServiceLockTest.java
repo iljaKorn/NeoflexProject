@@ -1,8 +1,10 @@
 package com.neoproject.deal.service;
 
+import com.neoproject.deal.config.EmailProducerConfig;
 import com.neoproject.deal.model.dto.LoanOfferDto;
 import com.neoproject.deal.model.entity.Statement;
 import com.neoproject.deal.model.enums.ApplicationStatus;
+import com.neoproject.deal.producer.EmailProducer;
 import com.neoproject.deal.repository.StatementRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
@@ -10,6 +12,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.test.context.*;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
@@ -52,6 +55,15 @@ public class DealServiceLockTest {
 
     @MockitoBean
     private RestClient restClient;
+
+    @MockitoBean
+    private KafkaTemplate kafkaTemplate;
+
+    @MockitoBean
+    private EmailProducer emailProducer;
+
+    @MockitoBean
+    private EmailProducerConfig emailProducerConfig;
 
     private UUID statementId1;
     private UUID statementId2;
@@ -113,7 +125,7 @@ public class DealServiceLockTest {
             assertThat(thread2WaitTime.get()).isGreaterThan(4000L);
 
             Statement stmt = statementRepository.findById(statementId1).orElseThrow();
-            assertThat(stmt.getStatus()).isEqualTo(ApplicationStatus.PREAPPROVAL);
+            assertThat(stmt.getStatus()).isEqualTo(ApplicationStatus.APPROVED);
             assertThat(stmt.getAppliedOffer()).isNotNull();
         }
     }
@@ -169,12 +181,12 @@ public class DealServiceLockTest {
             assertThat(thread2WaitTime.get()).isGreaterThan(2000L);
 
             Statement statement1 = statementRepository.findById(statementId1).orElseThrow();
-            assertThat(statement1.getStatus()).isEqualTo(ApplicationStatus.PREAPPROVAL);
+            assertThat(statement1.getStatus()).isEqualTo(ApplicationStatus.APPROVED);
             assertThat(statement1.getAppliedOffer()).isNotNull();
             assertThat(statement1.getStatusHistory()).hasSize(1);
 
             Statement statement2 = statementRepository.findById(statementId1).orElseThrow();
-            assertThat(statement2.getStatus()).isEqualTo(ApplicationStatus.PREAPPROVAL);
+            assertThat(statement2.getStatus()).isEqualTo(ApplicationStatus.APPROVED);
             assertThat(statement2.getAppliedOffer()).isNotNull();
             assertThat(statement2.getStatusHistory()).hasSize(1);
         }

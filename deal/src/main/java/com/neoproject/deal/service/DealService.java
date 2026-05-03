@@ -58,6 +58,7 @@ public class DealService {
 
         Statement newStatement = new Statement();
         newStatement.setClient(saveClient);
+        updateStatus(newStatement, ApplicationStatus.PREAPPROVAL);
         newStatement.setCreationDate(LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS));
         Statement saveStatement = statementRepository.save(newStatement);
         log.debug("В базу сохранены данные о сделке: {}", saveStatement);
@@ -81,12 +82,12 @@ public class DealService {
         Statement statement = statementRepository.findByIdWithLock(dto.getStatementId())
                 .orElseThrow(() -> new DealDatabaseNotFoundException("Заявка не найдена"));
 
-        if (statement.getStatus() == ApplicationStatus.PREAPPROVAL) {
+        if (statement.getStatus() == ApplicationStatus.APPROVED) {
             log.warn("Заявка с id: {} уже обработана", dto.getStatementId());
             return;
         }
 
-        updateStatus(statement, ApplicationStatus.PREAPPROVAL);
+        updateStatus(statement, ApplicationStatus.APPROVED);
         statement.setAppliedOffer(dto);
         statementRepository.save(statement);
         log.debug("В базе обновлены данные о сделке: {}", statement);

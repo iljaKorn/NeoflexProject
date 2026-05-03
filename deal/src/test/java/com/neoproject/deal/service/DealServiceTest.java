@@ -145,10 +145,10 @@ class DealServiceTest {
         Statement statementFromDB = new Statement();
 
         Statement expectedStatement = new Statement();
-        expectedStatement.setStatus(ApplicationStatus.PREAPPROVAL);
+        expectedStatement.setStatus(ApplicationStatus.APPROVED);
         List<StatementStatusHistoryDto> statusHistory = new ArrayList<>();
         StatementStatusHistoryDto newStatus = new StatementStatusHistoryDto();
-        newStatus.setStatus(String.valueOf(ApplicationStatus.PREAPPROVAL));
+        newStatus.setStatus(String.valueOf(ApplicationStatus.APPROVED));
         newStatus.setTime(LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS));
         newStatus.setChangeType(ChangeType.AUTOMATIC);
         statusHistory.add(newStatus);
