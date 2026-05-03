@@ -61,6 +61,9 @@ public class DealController {
 
 
     @PostMapping("/document/{statementId}/send")
+    @Operation(summary = "Отправка документов пользователю")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Документы успешно отправлены")})
     public void sendDocument(@PathVariable String statementId){
         log.info("Пришли данные для отправки документов с id: {}", statementId);
         dealService.sendDocuments(statementId);
@@ -68,6 +71,9 @@ public class DealController {
     }
 
     @PostMapping("/document/{statementId}/sign")
+    @Operation(summary = "Запрос на подписание документов")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Запрос на подписание документов выполнен успешно")})
     public void requestForSignDocument(@PathVariable String statementId){
         log.info("Пришли данные для запроса подписания документов с id: {}", statementId);
         dealService.requestForSignDocuments(statementId);
@@ -75,6 +81,9 @@ public class DealController {
     }
 
     @PostMapping("/document/{statementId}/code")
+    @Operation(summary = "Подпись документов и выдача кредита")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Документы успешно подписаны")})
     public void signDocument(@PathVariable String statementId, @RequestBody String code){
         log.info("Пришли данные для подписания документов с id: {}", statementId);
         dealService.signDocuments(statementId, code);

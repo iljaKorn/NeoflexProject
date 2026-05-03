@@ -147,21 +147,33 @@ public class DealService {
         statement.setStatusHistory(statusHistory);
     }
 
+    /**
+     * Метод для обновления данных заявки и передачи данных микросервису dossier
+     * для дальнейшей отправки на почту пользователя
+     *
+     * @param statementId id сделки
+     */
     public void sendDocuments(String statementId) {
         Statement statement = statementRepository.findById(UUID.fromString(statementId))
                 .orElseThrow(() -> new DealDatabaseNotFoundException("Заявка не найдена"));
 
         updateStatus(statement, ApplicationStatus.PREPARE_DOCUMENTS);
         statementRepository.save(statement);
-        log.debug("Обновлен статус заявки {}", statement);
+        log.debug("Обновлен статус заявки с id: {} на {}", statement.getStatementId(), statement.getStatus());
 
         emailProducer.produceMessageForSendDocuments(statement.getStatementId());
 
         updateStatus(statement, ApplicationStatus.DOCUMENT_CREATED);
         statementRepository.save(statement);
-        log.debug("Обновлен статус заявки {}", statement);
+        log.debug("Обновлен статус заявки с id: {} на {}", statement.getStatementId(), statement.getStatus());
     }
 
+    /**
+     * Метод для обновления данных заявки и передачи данных микросервису dossier
+     * для дальнейшего запроса подписи документов
+     *
+     * @param statementId id сделки
+     */
     public void requestForSignDocuments(String statementId) {
         Statement statement = statementRepository.findById(UUID.fromString(statementId))
                 .orElseThrow(() -> new DealDatabaseNotFoundException("Заявка не найдена"));
@@ -174,28 +186,36 @@ public class DealService {
 
         statement.setSesCode(code.toString());
         statementRepository.save(statement);
-        log.debug("Добавлен ПЭП код {}", statement);
+        log.debug("Добавлен ses код {}", statement);
 
         emailProducer.produceMessageForRequestToSign(statement.getStatementId(), code.toString());
     }
 
+    /**
+     * Метод для обновления данных заявки и передачи данных микросервису dossier
+     * для дальнейшего подписания документов и выдачи кредита
+     *
+     * @param statementId id сделки
+     * @param code ses код для подтверждения пользователя
+     */
     public void signDocuments(String statementId, String code) {
         Statement statement = statementRepository.findById(UUID.fromString(statementId))
                 .orElseThrow(() -> new DealDatabaseNotFoundException("Заявка не найдена"));
 
-        if(!code.equals(statement.getSesCode())){
-            throw new RuntimeException("Не совпадает код");
+        if (!code.equals(statement.getSesCode())) {
+            throw new IllegalArgumentException("Не совпадает ses код");
         }
 
         statement.setSignDate(LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS));
         updateStatus(statement, ApplicationStatus.DOCUMENT_SIGNED);
         statementRepository.save(statement);
-        log.debug("Заявка оформлена и сохранена в базе данных {}", statement);
+        log.debug("Обновлен статус и дата подписания заявки с id: {}", statement.getStatementId());
 
         emailProducer.produceMessageForSignDocuments(statement.getStatementId());
 
+        statement.getCredit().setCreditStatus(CreditStatus.ISSUED);
         updateStatus(statement, ApplicationStatus.CREDIT_ISSUED);
         statementRepository.save(statement);
-        log.debug("Обновлен статус заявки {}", statement);
+        log.debug("Обновлен статус заявки с id: {} на {}", statement.getStatementId(), statement.getStatus());
     }
 }

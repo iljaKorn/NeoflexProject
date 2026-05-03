@@ -6,7 +6,7 @@ spring:
     port: 465
     protocol: smtps
     username: il.kornilow@yandex.ru
-    password: ayvrkedkcvthcjpy
+    password: ${MAIL_PASSWORD}
     properties:
       mail:
         smtp:
