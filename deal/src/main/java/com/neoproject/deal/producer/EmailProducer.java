@@ -32,9 +32,9 @@ public class EmailProducer {
 
     private final KafkaTemplate<String, EmailMessage> kafkaTemplate;
 
-    public void produceMessageForFinishRegistration(UUID statementId) {
+    public void produceMessageForFinishRegistration(String email, UUID statementId) {
         EmailMessage emailMessage = new EmailMessage();
-        emailMessage.setAddress("kornilov.ilja@rambler.ru");
+        emailMessage.setAddress(email);
         emailMessage.setTheme(Theme.FINISH_REGISTRATION);
         emailMessage.setStatementId(statementId);
         emailMessage.setText("Ваша заявка предварительно одобрена, завершите оформление");
@@ -43,9 +43,9 @@ public class EmailProducer {
         log.info("Отправлено сообщение с данными для завершения регистрации: {}", emailMessage);
     }
 
-    public void produceMessageForCreateDocument(UUID statementId) {
+    public void produceMessageForCreateDocument(String email, UUID statementId) {
         EmailMessage emailMessage = new EmailMessage();
-        emailMessage.setAddress("kornilov.ilja@rambler.ru");
+        emailMessage.setAddress(email);
         emailMessage.setTheme(Theme.CREATE_DOCUMENTS);
         emailMessage.setStatementId(statementId);
         emailMessage.setText("Условия кредита выбраны, далее необходимо оформить документы");
@@ -55,9 +55,9 @@ public class EmailProducer {
 
     }
 
-    public void produceMessageForSendDocuments(UUID statementId) {
+    public void produceMessageForSendDocuments(String email, UUID statementId) {
         EmailMessage emailMessage = new EmailMessage();
-        emailMessage.setAddress("kornilov.ilja@rambler.ru");
+        emailMessage.setAddress(email);
         emailMessage.setTheme(Theme.SEND_DOCUMENTS);
         emailMessage.setStatementId(statementId);
         emailMessage.setText("Документы сформированы и готовы к подписанию");
@@ -66,9 +66,9 @@ public class EmailProducer {
         log.info("Отправлено сообщение с данными для отправки документов: {}", emailMessage);
     }
 
-    public void produceMessageForRequestToSign(UUID statementId, String ses_code) {
+    public void produceMessageForRequestToSign(String email, UUID statementId, String ses_code) {
         EmailMessage emailMessage = new EmailMessage();
-        emailMessage.setAddress("kornilov.ilja@rambler.ru");
+        emailMessage.setAddress(email);
         emailMessage.setTheme(Theme.SEND_SES);
         emailMessage.setStatementId(statementId);
         emailMessage.setText("Код для подписания документов: " + ses_code);
@@ -77,9 +77,9 @@ public class EmailProducer {
         log.info("Отправлено сообщение с данными для запроса подписи документов: {}", emailMessage);
     }
 
-    public void produceMessageForSignDocuments(UUID statementId) {
+    public void produceMessageForSignDocuments(String email, UUID statementId) {
         EmailMessage emailMessage = new EmailMessage();
-        emailMessage.setAddress("kornilov.ilja@rambler.ru");
+        emailMessage.setAddress(email);
         emailMessage.setTheme(Theme.CREDIT_ISSUED);
         emailMessage.setStatementId(statementId);
         emailMessage.setText("Кредит одобрен");

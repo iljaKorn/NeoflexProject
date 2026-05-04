@@ -95,7 +95,7 @@ public class DealService {
         statementRepository.save(statement);
         log.debug("В базе обновлены данные о сделке: {}", statement);
 
-        emailProducer.produceMessageForFinishRegistration(statement.getStatementId());
+        emailProducer.produceMessageForFinishRegistration(statement.getClient().getEmail(), statement.getStatementId());
     }
 
     /**
@@ -122,7 +122,7 @@ public class DealService {
         statementRepository.save(statement);
         log.debug("В базу добавлены финальные данные о сделке: {}", statement);
 
-        emailProducer.produceMessageForCreateDocument(statement.getStatementId());
+        emailProducer.produceMessageForCreateDocument(statement.getClient().getEmail(), statement.getStatementId());
     }
 
     /**
@@ -161,7 +161,7 @@ public class DealService {
         statementRepository.save(statement);
         log.debug("Обновлен статус заявки с id: {} на {}", statement.getStatementId(), statement.getStatus());
 
-        emailProducer.produceMessageForSendDocuments(statement.getStatementId());
+        emailProducer.produceMessageForSendDocuments(statement.getClient().getEmail(), statement.getStatementId());
 
         updateStatus(statement, ApplicationStatus.DOCUMENT_CREATED);
         statementRepository.save(statement);
@@ -188,7 +188,8 @@ public class DealService {
         statementRepository.save(statement);
         log.debug("Добавлен ses код {}", statement);
 
-        emailProducer.produceMessageForRequestToSign(statement.getStatementId(), code.toString());
+        emailProducer.produceMessageForRequestToSign(statement.getClient().getEmail(),
+                statement.getStatementId(), code.toString());
     }
 
     /**
@@ -196,7 +197,7 @@ public class DealService {
      * для дальнейшего подписания документов и выдачи кредита
      *
      * @param statementId id сделки
-     * @param code ses код для подтверждения пользователя
+     * @param code        ses код для подтверждения пользователя
      */
     public void signDocuments(String statementId, String code) {
         Statement statement = statementRepository.findById(UUID.fromString(statementId))
@@ -211,7 +212,7 @@ public class DealService {
         statementRepository.save(statement);
         log.debug("Обновлен статус и дата подписания заявки с id: {}", statement.getStatementId());
 
-        emailProducer.produceMessageForSignDocuments(statement.getStatementId());
+        emailProducer.produceMessageForSignDocuments(statement.getClient().getEmail(), statement.getStatementId());
 
         statement.getCredit().setCreditStatus(CreditStatus.ISSUED);
         updateStatus(statement, ApplicationStatus.CREDIT_ISSUED);

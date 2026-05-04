@@ -162,7 +162,7 @@ class DealServiceTest {
                 .thenReturn(Optional.of(statementFromDB));
         when(statementRepository.save(any(Statement.class)))
                 .thenReturn(expectedStatement);
-        doNothing().when(emailProducer).produceMessageForFinishRegistration(any());
+        doNothing().when(emailProducer).produceMessageForFinishRegistration(any(), any());
 
         // Действие
         dealService.selectOffer(validRequestForSelectOneOffer);
@@ -204,7 +204,7 @@ class DealServiceTest {
         when(creditRepository.save(any(Credit.class))).thenReturn(credit);
         when(statementRepository.save(any(Statement.class))).thenReturn(statement);
 
-        doNothing().when(emailProducer).produceMessageForCreateDocument(any());
+        doNothing().when(emailProducer).produceMessageForCreateDocument(any(), any());
 
         // Действие
         dealService.finishRegistration(UUID.randomUUID().toString(), validRequestForFinishRegistration);
@@ -238,7 +238,7 @@ class DealServiceTest {
 
         when(statementRepository.findById(any())).thenReturn(Optional.of(statement));
         when(statementRepository.save(any(Statement.class))).thenReturn(statement);
-        doNothing().when(emailProducer).produceMessageForSendDocuments(any());
+        doNothing().when(emailProducer).produceMessageForSendDocuments(any(), any());
 
         // Действие
         dealService.sendDocuments(UUID.randomUUID().toString());
@@ -268,7 +268,7 @@ class DealServiceTest {
 
         when(statementRepository.findById(any())).thenReturn(Optional.of(statement));
         when(statementRepository.save(any(Statement.class))).thenReturn(statement);
-        doNothing().when(emailProducer).produceMessageForRequestToSign(any(), any());
+        doNothing().when(emailProducer).produceMessageForRequestToSign(any(), any(), any());
 
         // Действие
         dealService.requestForSignDocuments(UUID.randomUUID().toString());
@@ -299,7 +299,7 @@ class DealServiceTest {
 
         when(statementRepository.findById(any())).thenReturn(Optional.of(statement));
         when(statementRepository.save(any(Statement.class))).thenReturn(statement);
-        doNothing().when(emailProducer).produceMessageForSignDocuments(any());
+        doNothing().when(emailProducer).produceMessageForSignDocuments(any(), any());
 
         // Действие
         dealService.signDocuments(UUID.randomUUID().toString(), "123456");
