@@ -157,7 +157,7 @@ public class DealService {
         Statement statement = statementRepository.findById(UUID.fromString(statementId))
                 .orElseThrow(() -> new DealDatabaseNotFoundException("Заявка не найдена"));
 
-        statement.setStatus(ApplicationStatus.CLIENT_DENIED);
+        updateStatus(statement, ApplicationStatus.CLIENT_DENIED);
         statementRepository.save(statement);
         log.debug("Обновлен статус заявки с id: {} на {}", statement.getStatementId(), statement.getStatus());
 

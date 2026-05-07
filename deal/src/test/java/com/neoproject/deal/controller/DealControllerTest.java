@@ -27,6 +27,7 @@ import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -196,42 +197,41 @@ class DealControllerTest {
     }
 
     @Test
-    @DisplayName("POST /document/{statementId}/send - успешная отправка документов")
+    @DisplayName("GET /document/{statementId}/send - успешная отправка документов")
     void sendDocumentsCorrectly() throws Exception {
         // Подготовка
         doNothing().when(dealService).sendDocuments(any());
 
         // Действие и Проверка
-        mockMvc.perform(post("/deal/document/{statementId}/send", "1"))
+        mockMvc.perform(get("/deal/document/{statementId}/send", "1"))
                 .andExpect(status().isOk());
 
         verify(dealService, times(1)).sendDocuments(any());
     }
 
     @Test
-    @DisplayName("POST /document/{statementId}/sign - успешный запрос на подписание документов")
+    @DisplayName("GET /document/{statementId}/sign - успешный запрос на подписание документов")
     void requestForSignDocumentCorrectly() throws Exception {
         // Подготовка
         doNothing().when(dealService).requestForSignDocuments(any());
 
         // Действие и Проверка
-        mockMvc.perform(post("/deal/document/{statementId}/sign", "1"))
+        mockMvc.perform(get("/deal/document/{statementId}/sign", "1"))
                 .andExpect(status().isOk());
 
         verify(dealService, times(1)).requestForSignDocuments(any());
     }
 
     @Test
-    @DisplayName("POST /document/{statementId}/code - успешное подписание документов")
+    @DisplayName("GET /document/{statementId}/code - успешное подписание документов")
     void signDocumentCorrectly() throws Exception {
         // Подготовка
         doNothing().when(dealService).signDocuments(any(), any());
 
         // Действие и Проверка
-        mockMvc.perform(post("/deal/document/{statementId}/code", "1")
-                .contentType(MediaType.TEXT_PLAIN)
-                .content("123456"))
-                .andExpect(status().isOk());
+        mockMvc.perform(get("/deal/document/{statementId}/code", "1")
+                        .param("code", "123456"))
+                        .andExpect(status().isOk());
 
         verify(dealService, times(1)).signDocuments(any(), any());
     }

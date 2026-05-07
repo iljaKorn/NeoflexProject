@@ -5,6 +5,7 @@ import com.neoproject.deal.converter.CreditMapper;
 import com.neoproject.deal.converter.ScoringDataMapper;
 import com.neoproject.deal.converter.StatementMapper;
 import com.neoproject.deal.exception.DealDatabaseNotFoundException;
+import com.neoproject.deal.exception.InvalidSesCodeException;
 import com.neoproject.deal.model.dto.*;
 import com.neoproject.deal.model.entity.Client;
 import com.neoproject.deal.model.entity.Credit;
@@ -147,6 +148,11 @@ class DealServiceTest {
     void shouldUpdateStatusAndSaveOfferCorrectly() {
         // Подготовка
         Statement statementFromDB = new Statement();
+        Client client = new Client();
+        client.setFirstName("ivan");
+        client.setLastName("petrov");
+        client.setEmail("ivan@mail.ru");
+        statementFromDB.setClient(client);
 
         Statement expectedStatement = new Statement();
         expectedStatement.setStatus(ApplicationStatus.APPROVED);
@@ -190,6 +196,12 @@ class DealServiceTest {
     void shouldFinishRegistrationCorrectly() {
         // Подготовка
         Statement statement = new Statement();
+        Client client = new Client();
+        client.setFirstName("ivan");
+        client.setLastName("petrov");
+        client.setEmail("ivan@mail.ru");
+        statement.setClient(client);
+
         ScoringDataDto scoringDataDto = new ScoringDataDto();
         CreditDto creditDto = new CreditDto();
         Credit credit = new Credit();
@@ -234,6 +246,11 @@ class DealServiceTest {
     void shouldSendDocumentsCorrectly() {
         // Подготовка
         Statement statement = new Statement();
+        Client client = new Client();
+        client.setFirstName("ivan");
+        client.setLastName("petrov");
+        client.setEmail("ivan@mail.ru");
+        statement.setClient(client);
         statement.setStatementId(UUID.randomUUID());
 
         when(statementRepository.findById(any())).thenReturn(Optional.of(statement));
@@ -264,6 +281,11 @@ class DealServiceTest {
     void shouldRequestForSignDocumentsCorrectly() {
         // Подготовка
         Statement statement = new Statement();
+        Client client = new Client();
+        client.setFirstName("ivan");
+        client.setLastName("petrov");
+        client.setEmail("ivan@mail.ru");
+        statement.setClient(client);
         statement.setStatementId(UUID.randomUUID());
 
         when(statementRepository.findById(any())).thenReturn(Optional.of(statement));
@@ -292,6 +314,12 @@ class DealServiceTest {
     void shouldSignDocumentsCorrectly() {
         // Подготовка
         Statement statement = new Statement();
+        Client client = new Client();
+        client.setFirstName("ivan");
+        client.setLastName("petrov");
+        client.setEmail("ivan@mail.ru");
+        statement.setClient(client);
+
         Credit credit = new Credit();
         statement.setCredit(credit);
         statement.setSesCode("123456");
@@ -324,7 +352,7 @@ class DealServiceTest {
     }
 
     @Test
-    void shouldThrowIllegalArgumentExceptionForSignDocument() {
+    void shouldThrowInvalidSesCodeExceptionForSignDocument() {
         // Подготовка
         Statement statement = new Statement();
         statement.setStatementId(UUID.randomUUID());
@@ -333,7 +361,40 @@ class DealServiceTest {
 
         // Действие и Проверка
         assertThatThrownBy(() -> dealService.signDocuments(UUID.randomUUID().toString(), "123455"))
-                .isInstanceOf(IllegalArgumentException.class)
+                .isInstanceOf(InvalidSesCodeException.class)
                 .hasMessageContaining("Не совпадает ses код");
+    }
+
+    @Test
+    void shouldRejectStatementCorrectly() {
+        // Подготовка
+        Statement statement = new Statement();
+        Client client = new Client();
+        client.setFirstName("ivan");
+        client.setLastName("petrov");
+        client.setEmail("ivan@mail.ru");
+        statement.setClient(client);
+
+        when(statementRepository.findById(any())).thenReturn(Optional.of(statement));
+        when(statementRepository.save(any(Statement.class))).thenReturn(statement);
+        doNothing().when(emailProducer).produceMessageForRejectStatement(any(), any());
+
+        // Действие
+        dealService.rejectStatement(UUID.randomUUID().toString());
+
+        // Проверка
+        assertThat(statement.getStatusHistory()).hasSize(1);
+        assertThat(statement.getStatusHistory().getFirst().getStatus()).isEqualTo(ApplicationStatus.CLIENT_DENIED.name());
+    }
+
+    @Test
+    void shouldThrowDealDatabaseNotFoundExceptionForRejectStatement() {
+        // Подготовка
+        when(statementRepository.findById(any())).thenReturn(Optional.empty());
+
+        // Действие и Проверка
+        assertThatThrownBy(() -> dealService.rejectStatement(UUID.randomUUID().toString()))
+                .isInstanceOf(DealDatabaseNotFoundException.class)
+                .hasMessageContaining("Заявка не найдена");
     }
 }

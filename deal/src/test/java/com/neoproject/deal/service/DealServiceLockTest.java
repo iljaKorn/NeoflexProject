@@ -2,6 +2,7 @@ package com.neoproject.deal.service;
 
 import com.neoproject.deal.config.EmailProducerConfig;
 import com.neoproject.deal.model.dto.LoanOfferDto;
+import com.neoproject.deal.model.entity.Client;
 import com.neoproject.deal.model.entity.Statement;
 import com.neoproject.deal.model.enums.ApplicationStatus;
 import com.neoproject.deal.producer.EmailProducer;
@@ -26,7 +27,9 @@ import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicLong;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doNothing;
 
 @Testcontainers
 @SpringBootTest
@@ -71,7 +74,18 @@ public class DealServiceLockTest {
     @BeforeEach
     void setUp() {
         Statement statement1 = new Statement();
+        Client client1 = new Client();
+        client1.setEmail("kornilov.ilja@rambler.ru");
+        client1.setFirstName("Илья");
+        client1.setLastName("Корнилов");
+        statement1.setClient(client1);
+
         Statement statement2 = new Statement();
+        Client client2 = new Client();
+        client2.setEmail("kornilov.ilja@rambler.ru");
+        client2.setFirstName("Петр");
+        client2.setLastName("Петров");
+        statement2.setClient(client2);
 
         statementId1 = statementRepository.save(statement1).getStatementId();
         statementId2 = statementRepository.save(statement2).getStatementId();
@@ -95,6 +109,9 @@ public class DealServiceLockTest {
 
             return result;
         }).when(dealService).selectOffer(offerDto);
+
+        doNothing().when(emailProducer)
+                .produceMessageForFinishRegistration(any(String.class), any(UUID.class));
 
         // Действие
         try (ExecutorService executor = Executors.newFixedThreadPool(2)) {
@@ -151,6 +168,9 @@ public class DealServiceLockTest {
 
             return result;
         }).when(dealService).selectOffer(Mockito.any());
+
+        doNothing().when(emailProducer)
+                .produceMessageForFinishRegistration(any(String.class), any(UUID.class));
 
         // Действие
         try (ExecutorService executor = Executors.newFixedThreadPool(2)) {
