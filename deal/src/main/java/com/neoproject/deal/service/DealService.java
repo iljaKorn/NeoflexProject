@@ -5,6 +5,7 @@ import com.neoproject.deal.converter.CreditMapper;
 import com.neoproject.deal.converter.ScoringDataMapper;
 import com.neoproject.deal.converter.StatementMapper;
 import com.neoproject.deal.exception.DealDatabaseNotFoundException;
+import com.neoproject.deal.exception.InvalidSesCodeException;
 import com.neoproject.deal.model.dto.*;
 import com.neoproject.deal.model.entity.Client;
 import com.neoproject.deal.model.entity.Credit;
@@ -148,6 +149,22 @@ public class DealService {
     }
 
     /**
+     * Метод для отмены заявки клиентом
+     *
+     * @param statementId id сделки
+     */
+    public void rejectStatement(String statementId) {
+        Statement statement = statementRepository.findById(UUID.fromString(statementId))
+                .orElseThrow(() -> new DealDatabaseNotFoundException("Заявка не найдена"));
+
+        statement.setStatus(ApplicationStatus.CLIENT_DENIED);
+        statementRepository.save(statement);
+        log.debug("Обновлен статус заявки с id: {} на {}", statement.getStatementId(), statement.getStatus());
+
+        emailProducer.produceMessageForRejectStatement(statement.getClient().getEmail(), statement.getStatementId());
+    }
+
+    /**
      * Метод для обновления данных заявки и передачи данных микросервису dossier
      * для дальнейшей отправки на почту пользователя
      *
@@ -204,7 +221,7 @@ public class DealService {
                 .orElseThrow(() -> new DealDatabaseNotFoundException("Заявка не найдена"));
 
         if (!code.equals(statement.getSesCode())) {
-            throw new IllegalArgumentException("Не совпадает ses код");
+            throw new InvalidSesCodeException("Не совпадает ses код");
         }
 
         statement.setSignDate(LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS));

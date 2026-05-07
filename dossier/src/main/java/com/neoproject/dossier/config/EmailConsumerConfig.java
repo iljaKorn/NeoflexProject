@@ -21,16 +21,16 @@ import java.util.Map;
 public class EmailConsumerConfig {
 
     @Value("${spring.kafka.bootstrap-servers}")
-    private String BOOTSTRAP_SERVERS;
+    private String bootstrapServers;
 
     @Value("${spring.kafka.consumer.group-id}")
-    private String GROUP_ID;
+    private String groupId;
 
     @Bean
     public ConsumerFactory<String, EmailMessage> consumerFactory() {
         Map<String, Object> props = new HashMap<>();
-        props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, BOOTSTRAP_SERVERS);
-        props.put(ConsumerConfig.GROUP_ID_CONFIG, GROUP_ID);
+        props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
+        props.put(ConsumerConfig.GROUP_ID_CONFIG, groupId);
         props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
 
         props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, ErrorHandlingDeserializer.class);

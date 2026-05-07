@@ -43,4 +43,10 @@ public class EmailConsumer {
         log.info("Пришло сообщение с данными для одобрения кредита: {}", message);
         mailService.signDocuments(message);
     }
+
+    @KafkaListener(topics = "${spring.kafka.topics.statement-denied}")
+    public void consumeMessageForStatementDenied(EmailMessage message) {
+        log.info("Пришло сообщение с данными для отмены заявки: {}", message);
+        mailService.deniedStatement(message);
+    }
 }

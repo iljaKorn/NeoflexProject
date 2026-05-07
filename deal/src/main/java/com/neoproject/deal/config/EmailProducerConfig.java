@@ -18,7 +18,7 @@ import java.util.Map;
 @Configuration
 public class EmailProducerConfig {
 
-    @Value("${spring.kafka.bootstrap-servers[0]}")
+    @Value("${spring.kafka.bootstrap-servers}")
     private String bootstrapServers;
 
     @Bean
