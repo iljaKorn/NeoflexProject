@@ -1,5 +1,6 @@
 package com.neoproject.deal.controller;
 
+import com.neoproject.deal.model.dto.DocumentDto;
 import com.neoproject.deal.model.dto.FinishRegistrationRequestDto;
 import com.neoproject.deal.model.dto.LoanOfferDto;
 import com.neoproject.deal.model.dto.LoanStatementRequestDto;
@@ -96,5 +97,13 @@ public class DealController {
         log.info("Пришли данные для подписания документов с id: {}", statementId);
         dealService.signDocuments(statementId, code);
         log.info("Документы подписаны для заявки с id: {}", statementId);
+    }
+
+    @GetMapping("/document/data/{statementId}")
+    public DocumentDto getDocumentData(@PathVariable String statementId){
+        log.info("Пришел statementId: {}", statementId);
+        DocumentDto documentDto = dealService.getDocumentData(statementId);
+        log.info("Данные для документов с statementId: {} получены", statementId);
+        return documentDto;
     }
 }

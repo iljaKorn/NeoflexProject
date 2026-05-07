@@ -26,3 +26,6 @@ spring:
       group-id: group_one
 server:
   port: 8083
+services:
+  deal:
+    url: http://localhost:8081/deal

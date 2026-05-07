@@ -236,4 +236,14 @@ public class DealService {
         statementRepository.save(statement);
         log.debug("Обновлен статус заявки с id: {} на {}", statement.getStatementId(), statement.getStatus());
     }
+
+    public DocumentDto getDocumentData(String statementId) {
+        Statement statement = statementRepository.findById(UUID.fromString(statementId))
+                .orElseThrow(() -> new DealDatabaseNotFoundException("Заявка не найдена"));
+
+        DocumentDto documentDto = statementMapper.toDocumentDto(statement);
+        log.debug("Получены данные для формирования документов с statementId: {}", statementId);
+
+        return documentDto;
+    }
 }

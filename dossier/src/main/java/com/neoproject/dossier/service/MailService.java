@@ -1,14 +1,18 @@
 package com.neoproject.dossier.service;
 
+import com.neoproject.dossier.exception.DossierEmailSendException;
 import com.neoproject.dossier.model.dto.EmailMessage;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.FileSystemResource;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
+
+import java.io.File;
 
 /**
  * Сервис отправки писем на почту пользователя
@@ -22,6 +26,7 @@ public class MailService {
     private String emailAddressFrom;
 
     private final JavaMailSender mailSender;
+    private final DocumentGenerationService documentGenerationService;
 
     /**
      * Метод для отправки сообщения на почту пользователя для завершения регистрации
@@ -29,14 +34,19 @@ public class MailService {
      * @param message dto с данными для отправки писем на почту
      */
     public void finishRegistration(EmailMessage message) {
-        SimpleMailMessage messageToEmail = new SimpleMailMessage();
-        messageToEmail.setFrom(emailAddressFrom);
-        messageToEmail.setTo(message.getAddress());
-        messageToEmail.setSubject("Завершение оформления");
-        messageToEmail.setText("Ваша заявка предварительно одобрена, завершите оформление");
+        try {
+            SimpleMailMessage messageToEmail = new SimpleMailMessage();
+            messageToEmail.setFrom(emailAddressFrom);
+            messageToEmail.setTo(message.getAddress());
+            messageToEmail.setSubject("Завершение оформления");
+            messageToEmail.setText("Ваша заявка предварительно одобрена, завершите оформление");
 
-        mailSender.send(messageToEmail);
-        log.info("Сообщение отправлено на почту {} с темой {}", message.getAddress(), message.getTheme());
+            mailSender.send(messageToEmail);
+            log.info("Сообщение отправлено на почту {} с темой {}", message.getAddress(), message.getTheme());
+        } catch (Exception e) {
+            log.error("Ошибка при отправке письма на {}", message.getAddress(), e);
+            throw new DossierEmailSendException("Ошибка при отправке письма");
+        }
     }
 
     /**
@@ -85,7 +95,7 @@ public class MailService {
 
         } catch (Exception e) {
             log.error("Ошибка при отправке письма на {}", message.getAddress(), e);
-            throw new RuntimeException("Ошибка при отправке письма", e);
+            throw new DossierEmailSendException("Ошибка при отправке письма");
         }
     }
 
@@ -102,6 +112,8 @@ public class MailService {
             helper.setFrom(emailAddressFrom);
             helper.setTo(message.getAddress());
             helper.setSubject("Подписание документов");
+
+            File document = documentGenerationService.generateDocument(message.getStatementId());
 
             String urlForSendDocuments = "http://localhost:8081/deal/document/" +
                     message.getStatementId() + "/sign";
@@ -130,12 +142,15 @@ public class MailService {
             );
             helper.setText(htmlText, true);
 
+            FileSystemResource file = new FileSystemResource(document);
+            helper.addAttachment(document.getName(), file);
+
             mailSender.send(mimeMessage);
             log.info("Сообщение отправлено на почту {} с темой {}", message.getAddress(), message.getTheme());
-
+            document.delete();
         } catch (Exception e) {
             log.error("Ошибка при отправке письма на {}", message.getAddress(), e);
-            throw new RuntimeException("Ошибка при отправке письма", e);
+            throw new DossierEmailSendException("Ошибка при отправке письма");
         }
     }
 
@@ -187,7 +202,7 @@ public class MailService {
 
         } catch (Exception e) {
             log.error("Ошибка при отправке письма на {}", message.getAddress(), e);
-            throw new RuntimeException("Ошибка при отправке письма", e);
+            throw new DossierEmailSendException("Ошибка при отправке письма");
         }
     }
 
@@ -197,14 +212,19 @@ public class MailService {
      * @param message dto с данными для отправки писем на почту
      */
     public void signDocuments(EmailMessage message) {
-        SimpleMailMessage messageToEmail = new SimpleMailMessage();
-        messageToEmail.setFrom(emailAddressFrom);
-        messageToEmail.setTo(message.getAddress());
-        messageToEmail.setSubject("Выдача кредита");
-        messageToEmail.setText(String.format("Кредит с номером: %s одобрен", message.getStatementId()));
+        try {
+            SimpleMailMessage messageToEmail = new SimpleMailMessage();
+            messageToEmail.setFrom(emailAddressFrom);
+            messageToEmail.setTo(message.getAddress());
+            messageToEmail.setSubject("Выдача кредита");
+            messageToEmail.setText(String.format("Кредит с номером: %s одобрен", message.getStatementId()));
 
-        mailSender.send(messageToEmail);
-        log.info("Сообщение отправлено на почту {} с темой {}", message.getAddress(), message.getTheme());
+            mailSender.send(messageToEmail);
+            log.info("Сообщение отправлено на почту {} с темой {}", message.getAddress(), message.getTheme());
+        } catch (Exception e) {
+            log.error("Ошибка при отправке письма на {}", message.getAddress(), e);
+            throw new DossierEmailSendException("Ошибка при отправке письма");
+        }
     }
 
     /**
@@ -213,13 +233,18 @@ public class MailService {
      * @param message dto с данными для отправки писем на почту
      */
     public void deniedStatement(EmailMessage message) {
-        SimpleMailMessage messageToEmail = new SimpleMailMessage();
-        messageToEmail.setFrom(emailAddressFrom);
-        messageToEmail.setTo(message.getAddress());
-        messageToEmail.setSubject("Отмена заявки");
-        messageToEmail.setText("Заявка отменена");
+        try {
+            SimpleMailMessage messageToEmail = new SimpleMailMessage();
+            messageToEmail.setFrom(emailAddressFrom);
+            messageToEmail.setTo(message.getAddress());
+            messageToEmail.setSubject("Отмена заявки");
+            messageToEmail.setText("Заявка отменена");
 
-        mailSender.send(messageToEmail);
-        log.info("Сообщение отправлено на почту {} с темой {}", message.getAddress(), message.getTheme());
+            mailSender.send(messageToEmail);
+            log.info("Сообщение отправлено на почту {} с темой {}", message.getAddress(), message.getTheme());
+        } catch (Exception e) {
+            log.error("Ошибка при отправке письма на {}", message.getAddress(), e);
+            throw new DossierEmailSendException("Ошибка при отправке письма");
+        }
     }
 }
