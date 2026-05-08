@@ -11,6 +11,8 @@ import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
+import org.thymeleaf.TemplateEngine;
+import org.thymeleaf.context.Context;
 
 import java.io.File;
 
@@ -25,7 +27,20 @@ public class MailService {
     @Value("${spring.mail.username}")
     private String emailAddressFrom;
 
+    @Value("${app.email.base-url}")
+    private String baseUrl;
+
+    @Value("${app.email.paths.send-documents}")
+    private String sendDocumentPath;
+
+    @Value("${app.email.paths.sign-documents}")
+    private String signDocumentPath;
+
+    @Value("${app.email.paths.confirm-sign}")
+    private String confirmSignPath;
+
     private final JavaMailSender mailSender;
+    private final TemplateEngine templateEngine;
     private final DocumentGenerationService documentGenerationService;
 
     /**
@@ -63,31 +78,13 @@ public class MailService {
             helper.setTo(message.getAddress());
             helper.setSubject("Создание документов");
 
-            String urlForSendDocuments = "http://localhost:8081/deal/document/" +
-                    message.getStatementId() + "/send";
+            Context context = new Context();
+            String urlForSendDocuments = baseUrl +
+                    sendDocumentPath.replace("{statementId}", message.getStatementId().toString());
+            context.setVariable("link", urlForSendDocuments);
 
-            String htmlText = String.format("""
-                            <!DOCTYPE html>
-                            <html>
-                            <head>
-                                <meta charset="UTF-8">
-                            </head>
-                            <body>
-                                <div>
-                                    <h2>Оформление кредитных документов</h2>
-                                    <p>Условия кредита выбраны, далее необходимо оформить документы</p>
-                            
-                                    <p>Для продолжения нажмите на кнопку ниже:</p>
-                            
-                                    <p>
-                                        <a href="%s" class="button">Оформить документы</a>
-                                    </p>
-                                </div>
-                            </body>
-                            </html>
-                            """,
-                    urlForSendDocuments
-            );
+            String htmlText = templateEngine.process("emails/emailForCreateDocument.html", context);
+
             helper.setText(htmlText, true);
 
             mailSender.send(mimeMessage);
@@ -115,31 +112,13 @@ public class MailService {
 
             File document = documentGenerationService.generateDocument(message.getStatementId());
 
-            String urlForSendDocuments = "http://localhost:8081/deal/document/" +
-                    message.getStatementId() + "/sign";
+            Context context = new Context();
+            String urlForSendDocuments = baseUrl +
+                    signDocumentPath.replace("{statementId}", message.getStatementId().toString());
+            context.setVariable("link", urlForSendDocuments);
 
-            String htmlText = String.format("""
-                            <!DOCTYPE html>
-                            <html>
-                            <head>
-                                <meta charset="UTF-8">
-                            </head>
-                            <body>
-                                <div>
-                                    <h2>Подписание кредитных документов</h2>
-                                    <p>Документы сформированы и готовы к подписанию</p>
-                            
-                                    <p>Для продолжения нажмите на кнопку ниже:</p>
-                            
-                                    <p>
-                                        <a href="%s" class="button">Подписать документы</a>
-                                    </p>
-                                </div>
-                            </body>
-                            </html>
-                            """,
-                    urlForSendDocuments
-            );
+            String htmlText = templateEngine.process("emails/emailForSendDocument.html", context);
+
             helper.setText(htmlText, true);
 
             FileSystemResource file = new FileSystemResource(document);
@@ -168,33 +147,15 @@ public class MailService {
             helper.setTo(message.getAddress());
             helper.setSubject("Подтверждение подписания документов");
 
-            String urlForSendDocuments = "http://localhost:8081/deal/document/" +
-                    message.getStatementId() + "/code"
-                    + "?code=" + message.getText();
+            Context context = new Context();
+            String urlForSendDocuments = baseUrl +
+                    confirmSignPath.replace("{statementId}", message.getStatementId().toString()) +
+                    "?code=" + message.getText();
+            context.setVariable("link", urlForSendDocuments);
+            context.setVariable("code", message.getText());
 
-            String htmlText = String.format("""
-                            <!DOCTYPE html>
-                            <html>
-                            <head>
-                                <meta charset="UTF-8">
-                            </head>
-                            <body>
-                                <div>
-                                    <h2>Подтверждение подписания</h2>
-                                    <p>Код для подписания документов: %s</p>
-                            
-                                    <p>Для подтверждения введите полученный код и нажмите на кнопку ниже:</p>
-                            
-                                    <p>
-                                        <a href="%s" class="button">Подтвердить подписание</a>
-                                    </p>
-                                </div>
-                            </body>
-                            </html>
-                            """,
-                    message.getText(),
-                    urlForSendDocuments
-            );
+            String htmlText = templateEngine.process("emails/emailForRequestToSign.html", context);
+
             helper.setText(htmlText, true);
 
             mailSender.send(mimeMessage);

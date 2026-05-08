@@ -29,3 +29,10 @@ server:
 services:
   deal:
     url: http://localhost:8081/deal
+app:
+  email:
+    base-url: http://localhost:8081
+    paths:
+      send-documents: /deal/document/{statementId}/send
+      sign-documents: /deal/document/{statementId}/sign
+      confirm-sign: /deal/document/{statementId}/code
