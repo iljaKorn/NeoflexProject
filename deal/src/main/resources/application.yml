@@ -7,10 +7,22 @@ spring:
     hibernate:
       ddl-auto: validate
   datasource:
-    url: jdbc:postgresql://localhost:5433/bank
+    url: jdbc:postgresql://localhost:5433/postgres
     username: ilya
     password: 123
     driver-class-name: org.postgresql.Driver
+  kafka:
+    topics:
+      finish-registration: finish-registration
+      create-documents: create-documents
+      send-documents: send-documents
+      send-ses: send-ses
+      credit-issued: credit-issued
+      statement-denied: statement-denied
+    bootstrap-servers: localhost:29092
+    producer:
+      properties:
+        acks: 1
 services:
   calculator:
     url: http://localhost:8080/calculator

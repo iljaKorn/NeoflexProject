@@ -1,0 +1,38 @@
+spring:
+  application:
+    name: dossier
+  mail:
+    host: smtp.yandex.ru
+    port: 465
+    protocol: smtps
+    username: il.kornilow@yandex.ru
+    password: ${MAIL_PASSWORD}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          ssl:
+            enabled: true
+  kafka:
+    topics:
+      finish-registration: finish-registration
+      create-documents: create-documents
+      send-documents: send-documents
+      send-ses: send-ses
+      credit-issued: credit-issued
+      statement-denied: statement-denied
+    bootstrap-servers: localhost:29092
+    consumer:
+      group-id: dossier_group
+server:
+  port: 8083
+services:
+  deal:
+    url: http://localhost:8081/deal
+app:
+  email:
+    base-url: http://localhost:8081
+    paths:
+      send-documents: /deal/document/{statementId}/send
+      sign-documents: /deal/document/{statementId}/sign
+      confirm-sign: /deal/document/{statementId}/code

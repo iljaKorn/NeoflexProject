@@ -1,8 +1,11 @@
 package com.neoproject.deal.service;
 
+import com.neoproject.deal.config.EmailProducerConfig;
 import com.neoproject.deal.model.dto.LoanOfferDto;
+import com.neoproject.deal.model.entity.Client;
 import com.neoproject.deal.model.entity.Statement;
 import com.neoproject.deal.model.enums.ApplicationStatus;
+import com.neoproject.deal.producer.EmailProducer;
 import com.neoproject.deal.repository.StatementRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
@@ -10,6 +13,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.test.context.*;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
@@ -23,7 +27,9 @@ import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicLong;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doNothing;
 
 @Testcontainers
 @SpringBootTest
@@ -53,13 +59,33 @@ public class DealServiceLockTest {
     @MockitoBean
     private RestClient restClient;
 
+    @MockitoBean
+    private KafkaTemplate kafkaTemplate;
+
+    @MockitoBean
+    private EmailProducer emailProducer;
+
+    @MockitoBean
+    private EmailProducerConfig emailProducerConfig;
+
     private UUID statementId1;
     private UUID statementId2;
 
     @BeforeEach
     void setUp() {
         Statement statement1 = new Statement();
+        Client client1 = new Client();
+        client1.setEmail("kornilov.ilja@rambler.ru");
+        client1.setFirstName("Илья");
+        client1.setLastName("Корнилов");
+        statement1.setClient(client1);
+
         Statement statement2 = new Statement();
+        Client client2 = new Client();
+        client2.setEmail("kornilov.ilja@rambler.ru");
+        client2.setFirstName("Петр");
+        client2.setLastName("Петров");
+        statement2.setClient(client2);
 
         statementId1 = statementRepository.save(statement1).getStatementId();
         statementId2 = statementRepository.save(statement2).getStatementId();
@@ -83,6 +109,9 @@ public class DealServiceLockTest {
 
             return result;
         }).when(dealService).selectOffer(offerDto);
+
+        doNothing().when(emailProducer)
+                .produceMessageForFinishRegistration(any(String.class), any(UUID.class));
 
         // Действие
         try (ExecutorService executor = Executors.newFixedThreadPool(2)) {
@@ -113,7 +142,7 @@ public class DealServiceLockTest {
             assertThat(thread2WaitTime.get()).isGreaterThan(4000L);
 
             Statement stmt = statementRepository.findById(statementId1).orElseThrow();
-            assertThat(stmt.getStatus()).isEqualTo(ApplicationStatus.PREAPPROVAL);
+            assertThat(stmt.getStatus()).isEqualTo(ApplicationStatus.APPROVED);
             assertThat(stmt.getAppliedOffer()).isNotNull();
         }
     }
@@ -139,6 +168,9 @@ public class DealServiceLockTest {
 
             return result;
         }).when(dealService).selectOffer(Mockito.any());
+
+        doNothing().when(emailProducer)
+                .produceMessageForFinishRegistration(any(String.class), any(UUID.class));
 
         // Действие
         try (ExecutorService executor = Executors.newFixedThreadPool(2)) {
@@ -169,12 +201,12 @@ public class DealServiceLockTest {
             assertThat(thread2WaitTime.get()).isGreaterThan(2000L);
 
             Statement statement1 = statementRepository.findById(statementId1).orElseThrow();
-            assertThat(statement1.getStatus()).isEqualTo(ApplicationStatus.PREAPPROVAL);
+            assertThat(statement1.getStatus()).isEqualTo(ApplicationStatus.APPROVED);
             assertThat(statement1.getAppliedOffer()).isNotNull();
             assertThat(statement1.getStatusHistory()).hasSize(1);
 
             Statement statement2 = statementRepository.findById(statementId1).orElseThrow();
-            assertThat(statement2.getStatus()).isEqualTo(ApplicationStatus.PREAPPROVAL);
+            assertThat(statement2.getStatus()).isEqualTo(ApplicationStatus.APPROVED);
             assertThat(statement2.getAppliedOffer()).isNotNull();
             assertThat(statement2.getStatusHistory()).hasSize(1);
         }
