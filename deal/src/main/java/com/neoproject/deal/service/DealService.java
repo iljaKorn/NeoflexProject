@@ -246,4 +246,16 @@ public class DealService {
 
         return documentDto;
     }
+
+    public StatementDto getById(String statementId){
+        Statement statement = statementRepository.findById(UUID.fromString(statementId))
+                .orElseThrow(() -> new DealDatabaseNotFoundException("Заявка не найдена"));
+
+        return statementMapper.toDto(statement);
+    }
+
+    public List<StatementDto> getAllStatements(){
+        List<Statement> statementList = statementRepository.findAll();
+        return statementMapper.toDtoList(statementList);
+    }
 }

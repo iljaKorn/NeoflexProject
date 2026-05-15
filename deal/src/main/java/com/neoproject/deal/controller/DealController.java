@@ -1,9 +1,6 @@
 package com.neoproject.deal.controller;
 
-import com.neoproject.deal.model.dto.DocumentDto;
-import com.neoproject.deal.model.dto.FinishRegistrationRequestDto;
-import com.neoproject.deal.model.dto.LoanOfferDto;
-import com.neoproject.deal.model.dto.LoanStatementRequestDto;
+import com.neoproject.deal.model.dto.*;
 import com.neoproject.deal.service.DealService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -110,5 +107,24 @@ public class DealController {
         DocumentDto documentDto = dealService.getDocumentData(statementId);
         log.info("Данные для документов с statementId: {} получены", statementId);
         return documentDto;
+    }
+
+    @GetMapping("/admin/statement/{statementId}")
+    @Operation(summary = "Получение заявки по statementId")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Данные успешно получены")})
+    public StatementDto getById(@PathVariable String statementId){
+        log.info("Пришел statementId: {}", statementId);
+        StatementDto dto = dealService.getById(statementId);
+        log.info("Получена заявка с statementId: {}", statementId);
+        return dto;
+    }
+
+    @GetMapping("/admin/statement")
+    public List<StatementDto> getAllStatements(){
+        log.info("Пришел запрос на получение всех заявок");
+        List<StatementDto> statementList = dealService.getAllStatements();
+        log.info("Заявки получены");
+        return statementList;
     }
 }
