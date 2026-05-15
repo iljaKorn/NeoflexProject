@@ -51,6 +51,7 @@ public class DealController {
     }
 
     @PostMapping("/calculate/{statementId}")
+    @Operation(summary = "Передача оставшихся данных и завершение регистрации")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Регистрация завершена")})
     public void finishRegistration(@PathVariable String statementId,
@@ -61,6 +62,7 @@ public class DealController {
     }
 
     @PostMapping("/document/reject/{statementId}")
+    @Operation(summary = "Отмена оформления заявки")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Отмена заявки")})
     public void statementDenied(@PathVariable String statementId) {
@@ -100,6 +102,9 @@ public class DealController {
     }
 
     @GetMapping("/document/data/{statementId}")
+    @Operation(summary = "Получение данных для формирования документа")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Данные успешно получены")})
     public DocumentDto getDocumentData(@PathVariable String statementId){
         log.info("Пришел statementId: {}", statementId);
         DocumentDto documentDto = dealService.getDocumentData(statementId);
