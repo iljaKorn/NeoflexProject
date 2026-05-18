@@ -8,22 +8,22 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.neoproject.gateway.model.dto.FinishRegistrationRequestDto;
-import org.neoproject.gateway.service.GatewayService;
+import org.neoproject.gateway.service.DealService;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 @Slf4j
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/gateway")
+@RequestMapping("/deal")
 @Validated
 @Tag(name = "Контроллер сервиса gateway с запросами к сервису Deal",
         description = "Контроллер для обработки запросов от пользователя, идущих в сервис Deal")
 @ApiResponses(value = {
         @ApiResponse(responseCode = "400", description = "Ошибка в передаваемых параметрах")})
-public class GatewayRequestToDealController {
+public class DealController {
 
-    private final GatewayService gatewayService;
+    private final DealService dealService;
 
     @PostMapping("/calculate/{statementId}")
     @Operation(summary = "Передача оставшихся данных и завершение регистрации")
@@ -32,7 +32,7 @@ public class GatewayRequestToDealController {
     public void finishRegistration(@Valid @RequestBody FinishRegistrationRequestDto dto,
                                    @PathVariable String statementId) {
         log.info("Пришли данные для завершения регистрации statementId: {}, dto: {}", statementId, dto);
-        gatewayService.finishRegistration(statementId, dto);
+        dealService.finishRegistration(statementId, dto);
         log.info("Регистрация пользователя завершена с statementId: {}", statementId);
     }
 
@@ -42,7 +42,7 @@ public class GatewayRequestToDealController {
             @ApiResponse(responseCode = "200", description = "Отмена заявки")})
     public void statementDenied(@PathVariable String statementId) {
         log.info("Пришли данные для отмены заявки со statementId: {}", statementId);
-        gatewayService.statementDenied(statementId);
+        dealService.statementDenied(statementId);
         log.info("Заявка со statementId: {} отменена", statementId);
     }
 
@@ -52,7 +52,7 @@ public class GatewayRequestToDealController {
             @ApiResponse(responseCode = "200", description = "Документы успешно отправлены")})
     public void sendDocument(@PathVariable String statementId) {
         log.info("Пришли данные для отправки документов с id: {}", statementId);
-        gatewayService.sendDocuments(statementId);
+        dealService.sendDocuments(statementId);
         log.info("Документы отправлены с id: {}", statementId);
     }
 
@@ -62,7 +62,7 @@ public class GatewayRequestToDealController {
             @ApiResponse(responseCode = "200", description = "Запрос на подписание документов выполнен успешно")})
     public void requestForSignDocument(@PathVariable String statementId) {
         log.info("Пришли данные для запроса подписания документов с id: {}", statementId);
-        gatewayService.requestForSignDocuments(statementId);
+        dealService.requestForSignDocuments(statementId);
         log.info("Код для подписания отправлен для заявки с id: {}", statementId);
     }
 
@@ -72,7 +72,7 @@ public class GatewayRequestToDealController {
             @ApiResponse(responseCode = "200", description = "Документы успешно подписаны")})
     public void signDocument(@PathVariable String statementId, @RequestParam String code) {
         log.info("Пришли данные для подписания документов с id: {}", statementId);
-        gatewayService.signDocuments(statementId, code);
+        dealService.signDocuments(statementId, code);
         log.info("Документы подписаны для заявки с id: {}", statementId);
     }
 }

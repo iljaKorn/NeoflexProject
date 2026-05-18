@@ -2,48 +2,24 @@ package org.neoproject.gateway.service;
 
 import lombok.RequiredArgsConstructor;
 import org.neoproject.gateway.model.dto.FinishRegistrationRequestDto;
-import org.neoproject.gateway.model.dto.LoanOfferDto;
-import org.neoproject.gateway.model.dto.LoanStatementRequestDto;
-import org.neoproject.gateway.model.dto.StatementDto;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-
 /**
- * Сервис для вызова методов из других микросервисов
+ * Сервис для вызова методов микросервиса deal
  */
 @Service
 @RequiredArgsConstructor
-public class GatewayService {
+public class DealService {
 
     private final DealClientService dealClientService;
-    private final StatementClientService statementClientService;
-
-    /**
-     * Метод для получения предложений по кредиту
-     *
-     * @param dto специальный объект с данными для получения предложений
-     */
-    public List<LoanOfferDto> getOffers(LoanStatementRequestDto dto){
-        return statementClientService.getOffers(dto);
-    }
-
-    /**
-     * Метод для выбора конкретного предложения
-     *
-     * @param dto специальный объект с данными по конкретному предложению
-     */
-    public void selectOffer(LoanOfferDto dto){
-        statementClientService.selectOffer(dto);
-    }
 
     /**
      * Метод для завершения регистрации заявки
      *
      * @param statementId id сделки
-     * @param dto специальный объект с данными для завершения регистрации заявки
+     * @param dto         специальный объект с данными для завершения регистрации заявки
      */
-    public void finishRegistration(String statementId, FinishRegistrationRequestDto dto){
+    public void finishRegistration(String statementId, FinishRegistrationRequestDto dto) {
         dealClientService.finishRegistration(statementId, dto);
     }
 
@@ -52,24 +28,8 @@ public class GatewayService {
      *
      * @param statementId id сделки
      */
-    public void statementDenied(String statementId){
+    public void statementDenied(String statementId) {
         dealClientService.statementDenied(statementId);
-    }
-
-    /**
-     * Метод для получения заявки по id
-     *
-     * @param statementId id сделки
-     */
-    public StatementDto getById(String statementId){
-        return dealClientService.findById(statementId);
-    }
-
-    /**
-     * Метод для получения всех заявок
-     */
-    public List<StatementDto> getAllStatements(){
-        return dealClientService.findAll();
     }
 
     /**
