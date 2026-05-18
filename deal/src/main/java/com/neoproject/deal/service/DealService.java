@@ -187,7 +187,7 @@ public class DealService {
 
     /**
      * Метод для обновления данных заявки и передачи данных микросервису dossier
-     * для дальнейшего запроса подписи документов
+     * для запроса подписания документов
      *
      * @param statementId id сделки
      */
@@ -237,6 +237,11 @@ public class DealService {
         log.debug("Обновлен статус заявки с id: {} на {}", statement.getStatementId(), statement.getStatus());
     }
 
+    /**
+     * Метод для получения данных для формирования документов
+     *
+     * @param statementId id сделки
+     */
     public DocumentDto getDocumentData(String statementId) {
         Statement statement = statementRepository.findById(UUID.fromString(statementId))
                 .orElseThrow(() -> new DealDatabaseNotFoundException("Заявка не найдена"));
@@ -247,6 +252,11 @@ public class DealService {
         return documentDto;
     }
 
+    /**
+     * Метод для получения заявки по id
+     *
+     * @param statementId id сделки
+     */
     public StatementDto getById(String statementId){
         Statement statement = statementRepository.findById(UUID.fromString(statementId))
                 .orElseThrow(() -> new DealDatabaseNotFoundException("Заявка не найдена"));
@@ -254,6 +264,9 @@ public class DealService {
         return statementMapper.toDto(statement);
     }
 
+    /**
+     * Метод для получения всех заявок
+     */
     public List<StatementDto> getAllStatements(){
         List<Statement> statementList = statementRepository.findAll();
         return statementMapper.toDtoList(statementList);

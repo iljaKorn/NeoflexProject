@@ -121,6 +121,9 @@ public class DealController {
     }
 
     @GetMapping("/admin/statement")
+    @Operation(summary = "Получение всех заявок")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Данные успешно получены")})
     public List<StatementDto> getAllStatements(){
         log.info("Пришел запрос на получение всех заявок");
         List<StatementDto> statementList = dealService.getAllStatements();

@@ -7,12 +7,14 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.neoproject.gateway.model.dto.FinishRegistrationRequestDto;
 import org.neoproject.gateway.model.dto.LoanOfferDto;
 import org.neoproject.gateway.model.dto.LoanStatementRequestDto;
 import org.neoproject.gateway.service.GatewayService;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
@@ -21,10 +23,11 @@ import java.util.List;
 @RequiredArgsConstructor
 @RequestMapping("/gateway")
 @Validated
-@Tag(name = "Контроллер сервиса gateway", description = "Контроллер для обработки запросов от пользователя")
+@Tag(name = "Контроллер сервиса gateway с запросами к сервису Statement",
+        description = "Контроллер для обработки запросов от пользователя, идущих в сервис Statement")
 @ApiResponses(value = {
         @ApiResponse(responseCode = "400", description = "Ошибка в передаваемых параметрах")})
-public class GatewayController {
+public class GatewayRequestToStatementController {
 
     private final GatewayService gatewayService;
 
@@ -47,26 +50,5 @@ public class GatewayController {
         log.info("Пришло предложение для подтверждения: {}", dto);
         gatewayService.selectOffer(dto);
         log.info("Предложение принято: {}", dto);
-    }
-
-    @PostMapping("/calculate/{statementId}")
-    @Operation(summary = "Передача оставшихся данных и завершение регистрации")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Регистрация завершена")})
-    public void finishRegistration(@Valid @RequestBody FinishRegistrationRequestDto dto,
-                                   @PathVariable String statementId) {
-        log.info("Пришли данные для завершения регистрации statementId: {}, dto: {}", statementId, dto);
-        gatewayService.finishRegistration(statementId, dto);
-        log.info("Регистрация пользователя завершена с statementId: {}", statementId);
-    }
-
-    @PostMapping("/reject/{statementId}")
-    @Operation(summary = "Отмена оформления заявки")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Отмена заявки")})
-    public void statementDenied(@PathVariable String statementId){
-        log.info("Пришли данные для отмены заявки со statementId: {}", statementId);
-        gatewayService.statementDenied(statementId);
-        log.info("Заявка со statementId: {} отменена", statementId);
     }
 }
