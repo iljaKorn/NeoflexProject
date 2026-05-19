@@ -2,10 +2,13 @@ package com.neoproject.deal.converter;
 
 import com.neoproject.deal.model.dto.DocumentDto;
 import com.neoproject.deal.model.dto.FinishRegistrationRequestDto;
+import com.neoproject.deal.model.dto.StatementDto;
 import com.neoproject.deal.model.entity.Statement;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
+
+import java.util.List;
 
 @Mapper(componentModel = "spring")
 public interface StatementMapper {
@@ -28,4 +31,8 @@ public interface StatementMapper {
     @Mapping(source = "statement.credit.monthlyPayment", target = "monthlyPayment")
     @Mapping(source = "statement.credit.rate", target = "rate")
     DocumentDto toDocumentDto(Statement statement);
+
+    StatementDto toDto(Statement statement);
+
+    List<StatementDto> toDtoList(List<Statement> statementList);
 }

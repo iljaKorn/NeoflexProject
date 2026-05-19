@@ -31,8 +31,8 @@ services:
     url: http://localhost:8081/deal
 app:
   email:
-    base-url: http://localhost:8081
+    base-url: http://localhost:8084
     paths:
-      send-documents: /deal/document/{statementId}/send
-      sign-documents: /deal/document/{statementId}/sign
-      confirm-sign: /deal/document/{statementId}/code
+      send-documents: /gateway/document/{statementId}/send
+      sign-documents: /gateway/document/{statementId}/sign
+      confirm-sign: /gateway/document/{statementId}/code
