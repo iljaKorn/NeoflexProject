@@ -19,7 +19,7 @@ import java.util.List;
 @Slf4j
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/deal")
+@RequestMapping("/gateway")
 @Validated
 @Tag(name = "Контроллер сервиса gateway для админских запросов",
         description = "Контроллер для обработки запросов от админа")

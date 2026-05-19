@@ -21,7 +21,7 @@ import java.util.List;
 @Slf4j
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/statement")
+@RequestMapping("/gateway")
 @Validated
 @Tag(name = "Контроллер сервиса gateway с запросами к сервису Statement",
         description = "Контроллер для обработки запросов от пользователя, идущих в сервис Statement")
@@ -31,7 +31,7 @@ public class StatementController {
 
     private final StatementService statementService;
 
-    @PostMapping()
+    @PostMapping("/statement")
     @Operation(summary = "Расчёт возможных условий кредита")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Предложения успешно сформированы и представлены")})
@@ -42,7 +42,7 @@ public class StatementController {
         return offers;
     }
 
-    @PostMapping("/offer")
+    @PostMapping("/statement/offer")
     @Operation(summary = "Выбор одного из предложений")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Предложение успешно выбрано")})

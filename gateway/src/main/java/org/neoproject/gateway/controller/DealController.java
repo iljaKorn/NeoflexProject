@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.*;
 @Slf4j
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/deal")
+@RequestMapping("/gateway")
 @Validated
 @Tag(name = "Контроллер сервиса gateway с запросами к сервису Deal",
         description = "Контроллер для обработки запросов от пользователя, идущих в сервис Deal")
