@@ -41,10 +41,10 @@ jobs:
             -Dsonar.projectKey=iljaKorn_NeoflexProject \
             -Dsonar.moduleKey=deal-service \
             -Dsonar.projectBaseDir=$GITHUB_WORKSPACE \
-            -Dsonar.sources=deal/src/main/java \
-            -Dsonar.tests=deal/src/test/java \
-            -Dsonar.coverage.jacoco.xmlReportPaths=deal/target/site/jacoco/jacoco.xml \
-            -Dsonar.junit.reportPaths=deal/target/surefire-reports
+            -Dsonar.sources=src/main/java \
+            -Dsonar.tests=src/test/java \
+            -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml \
+            -Dsonar.junit.reportPaths=target/surefire-reports
 
       - name: Upload JAR
         uses: actions/upload-artifact@v4
