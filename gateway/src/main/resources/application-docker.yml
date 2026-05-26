@@ -1,0 +1,7 @@
+server:
+  port: 8080
+services:
+  deal:
+    url: http://deal:8080/deal
+  statement:
+    url: http://statement:8080/statement

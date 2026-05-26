@@ -1,0 +1,7 @@
+server:
+  port: 8084
+services:
+  deal:
+    url: http://localhost:8081/deal
+  statement:
+    url: http://localhost:8082/statement

@@ -5,12 +5,11 @@ spring:
     name: deal
   jpa:
     hibernate:
-      ddl-auto: validate
-  datasource:
-    url: jdbc:postgresql://localhost:5433/postgres
-    username: ilya
-    password: 123
-    driver-class-name: org.postgresql.Driver
+      ddl-auto: none
+  liquibase:
+    enabled: true
+    change-log: classpath:db/master.xml
+    default-schema: public
   kafka:
     topics:
       finish-registration: finish-registration
@@ -23,6 +22,3 @@ spring:
     producer:
       properties:
         acks: 1
-services:
-  calculator:
-    url: http://localhost:8080/calculator
