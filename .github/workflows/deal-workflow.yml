@@ -1,11 +1,11 @@
 name: deal-workflow.yml
 on:
   push:
-    branches: [master, develop, MVP-6]
+    branches: [ master, develop, MVP-6 ]
     paths:
       - 'deal/**'
   pull_request:
-    branches: [master, develop, MVP-6]
+    branches: [ master, develop, MVP-6 ]
     paths:
       - 'deal/**'
 
@@ -45,6 +45,14 @@ jobs:
             -Dsonar.tests=src/test/java \
             -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml \
             -Dsonar.junit.reportPaths=target/surefire-reports
+
+      - name: Coveralls
+        uses: coverallsapp/github-action@v2
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          file: deal/target/site/jacoco/jacoco.xml
+          flag-name: deal-service
+          fail-on-error: false
 
       - name: Upload JAR
         uses: actions/upload-artifact@v4
