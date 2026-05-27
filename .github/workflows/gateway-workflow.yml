@@ -46,6 +46,14 @@ jobs:
             -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml \
             -Dsonar.junit.reportPaths=target/surefire-reports
 
+      - name: Coveralls
+        uses: coverallsapp/github-action@v2
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          file: gateway/target/site/jacoco/jacoco.xml
+          flag-name: gateway-service
+          fail-on-error: false
+
       - name: Upload JAR
         uses: actions/upload-artifact@v4
         with:
