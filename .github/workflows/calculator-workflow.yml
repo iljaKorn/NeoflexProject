@@ -50,7 +50,7 @@ jobs:
         uses: coverallsapp/github-action@v2
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          file: target/site/jacoco/jacoco.xml
+          file: calculator/target/site/jacoco/jacoco.xml
           flag-name: calculator-service
           fail-on-error: false
 
