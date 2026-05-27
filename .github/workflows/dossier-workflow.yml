@@ -52,12 +52,9 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           file: dossier/target/site/jacoco/jacoco.xml
           flag-name: dossier-service
-          fail-on-error: false
-
 
       - name: Upload JAR
         uses: actions/upload-artifact@v4
         with:
           name: dossier-service-jar
           path: dossier/target/*.jar
-          retention-days: 7

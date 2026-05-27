@@ -52,11 +52,9 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           file: statement/target/site/jacoco/jacoco.xml
           flag-name: statement-service
-          fail-on-error: false
 
       - name: Upload JAR
         uses: actions/upload-artifact@v4
         with:
           name: statement-service-jar
           path: statement/target/*.jar
-          retention-days: 7

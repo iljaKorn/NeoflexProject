@@ -52,11 +52,9 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           file: calculator/target/site/jacoco/jacoco.xml
           flag-name: calculator-service
-          fail-on-error: false
 
       - name: Upload JAR
         uses: actions/upload-artifact@v4
         with:
           name: calculator-service-jar
           path: calculator/target/*.jar
-          retention-days: 7
