@@ -1,20 +1,16 @@
+server:
+  port: 8080
+
 spring:
   kafka:
-    topics:
-      finish-registration: finish-registration
-      create-documents: create-documents
-      send-documents: send-documents
-      send-ses: send-ses
-      credit-issued: credit-issued
-      statement-denied: statement-denied
     bootstrap-servers: kafka:9092
     consumer:
       group-id: dossier_group
-server:
-  port: 8080
+
 services:
   deal:
     url: http://deal:8080/deal
+
 app:
   email:
     base-url: http://localhost:8084

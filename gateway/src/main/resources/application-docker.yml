@@ -1,10 +1,6 @@
 server:
   port: 8080
-  forward-headers-strategy: framework
-springdoc:
-  api-docs:
-    path: /v3/api-docs
-    enabled: true
+
 services:
   deal:
     url: http://deal:8080/deal

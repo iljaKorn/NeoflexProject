@@ -1,6 +1,18 @@
+server:
+  port: 8083
+
 spring:
   application:
     name: dossier
+  kafka:
+    topics:
+      finish-registration: finish-registration
+      create-documents: create-documents
+      send-documents: send-documents
+      send-ses: send-ses
+      credit-issued: credit-issued
+      statement-denied: statement-denied
+    bootstrap-servers: ""
   mail:
     host: smtp.yandex.ru
     port: 465
@@ -13,3 +25,15 @@ spring:
           auth: true
           ssl:
             enabled: true
+
+services:
+  deal:
+    url: ""
+
+app:
+  email:
+    base-url: ""
+    paths:
+      send-documents: ""
+      sign-documents: ""
+      confirm-sign: ""

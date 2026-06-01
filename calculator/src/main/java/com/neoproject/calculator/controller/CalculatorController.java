@@ -25,7 +25,7 @@ import java.util.List;
 @RequestMapping("/calculator")
 @RequiredArgsConstructor
 @Validated
-@Tag(name = "Контроллер калькулятора", description = "Контроллер для обработки запросов для модуля калькулятор")
+@Tag(name = "Контроллер калькулятора", description = "Контроллер для обработки запросов для модуля калькулятор (calculator)")
 @ApiResponses(value = {
         @ApiResponse(responseCode = "400", description = "Ошибка в передаваемых параметрах")})
 public class CalculatorController {
