@@ -1,11 +1,17 @@
 name: statement-workflow.yml
 on:
   push:
-    branches: [master, develop, MVP-6]
+    branches:
+      - master
+      - develop
+      - 'MVP-*'
     paths:
       - 'statement/**'
   pull_request:
-    branches: [master, develop, MVP-6]
+    branches:
+      - master
+      - develop
+      - 'MVP-*'
     paths:
       - 'statement/**'
 

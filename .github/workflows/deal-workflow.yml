@@ -1,11 +1,17 @@
 name: deal-workflow.yml
 on:
   push:
-    branches: [ master, develop, MVP-6 ]
+    branches:
+      - master
+      - develop
+      - 'MVP-*'
     paths:
       - 'deal/**'
   pull_request:
-    branches: [ master, develop, MVP-6 ]
+    branches:
+      - master
+      - develop
+      - 'MVP-*'
     paths:
       - 'deal/**'
 

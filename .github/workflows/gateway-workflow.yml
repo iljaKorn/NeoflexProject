@@ -1,11 +1,17 @@
 name: gateway-workflow.yml
 on:
   push:
-    branches: [master, develop, MVP-6]
+    branches:
+      - master
+      - develop
+      - 'MVP-*'
     paths:
       - 'gateway/**'
   pull_request:
-    branches: [master, develop, MVP-6]
+    branches:
+      - master
+      - develop
+      - 'MVP-*'
     paths:
       - 'gateway/**'
 
