@@ -1,15 +1,21 @@
 server:
   port: 8081
+  forward-headers-strategy: framework
+
 spring:
   application:
     name: deal
   jpa:
     hibernate:
-      ddl-auto: validate
+      ddl-auto: none
+  liquibase:
+    enabled: true
+    change-log: classpath:db/master.xml
+    default-schema: public
   datasource:
-    url: jdbc:postgresql://localhost:5433/postgres
-    username: ilya
-    password: 123
+    url:
+    username:
+    password:
     driver-class-name: org.postgresql.Driver
   kafka:
     topics:
@@ -19,10 +25,16 @@ spring:
       send-ses: send-ses
       credit-issued: credit-issued
       statement-denied: statement-denied
-    bootstrap-servers: localhost:29092
+    bootstrap-servers:
     producer:
       properties:
         acks: 1
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+    enabled: true
+
 services:
   calculator:
-    url: http://localhost:8080/calculator
+    url:

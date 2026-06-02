@@ -23,7 +23,7 @@ import java.util.List;
 @RequestMapping("/statement")
 @RequiredArgsConstructor
 @Validated
-@Tag(name = "Контроллер сервиса сделок", description = "Контроллер для обработки запросов для модуля сделок")
+@Tag(name = "Контроллер сервиса заявок", description = "Контроллер для обработки запросов для модуля заявок (statement)")
 @ApiResponses(value = {
         @ApiResponse(responseCode = "400", description = "Ошибка в передаваемых параметрах")})
 public class StatementController {

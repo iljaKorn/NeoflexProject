@@ -14,6 +14,7 @@ import java.awt.*;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.time.LocalDate;
 import java.util.UUID;
 
@@ -32,12 +33,7 @@ public class DocumentGenerationService {
 
         document.open();
 
-        String fontPath = new ClassPathResource("fonts/DejaVuSans.ttf").getFile().getAbsolutePath();
-        BaseFont baseFont = BaseFont.createFont(
-                fontPath,
-                BaseFont.IDENTITY_H,
-                BaseFont.EMBEDDED
-        );
+        BaseFont baseFont = loadBaseFont();
 
         Font titleFont = new Font(baseFont, 16, Font.BOLD);
         Font normalFont = new Font(baseFont, 12, Font.NORMAL);
@@ -99,5 +95,21 @@ public class DocumentGenerationService {
 
         document.close();
         return file;
+    }
+
+    private BaseFont loadBaseFont() throws IOException, DocumentException {
+        ClassPathResource fontResource = new ClassPathResource("fonts/DejaVuSans.ttf");
+
+        try (InputStream fontStream = fontResource.getInputStream()) {
+            return BaseFont.createFont(
+                    "fonts/DejaVuSans.ttf",
+                    BaseFont.IDENTITY_H,
+                    BaseFont.EMBEDDED,
+                    true,
+                    fontStream.readAllBytes(),
+                    null,
+                    false
+            );
+        }
     }
 }

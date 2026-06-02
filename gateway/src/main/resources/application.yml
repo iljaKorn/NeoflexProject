@@ -1,10 +1,18 @@
+server:
+  port: 8084
+  forward-headers-strategy: framework
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+    enabled: true
+
 spring:
   application:
     name: gateway
-server:
-  port: 8084
+
 services:
   deal:
-    url: http://localhost:8081/deal
+    url:
   statement:
-    url: http://localhost:8082/statement
+    url:

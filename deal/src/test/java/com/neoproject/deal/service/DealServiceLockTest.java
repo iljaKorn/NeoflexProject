@@ -32,7 +32,9 @@ import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doNothing;
 
 @Testcontainers
-@SpringBootTest
+@SpringBootTest(properties = {
+        "spring.liquibase.enabled=false"
+})
 @Slf4j
 public class DealServiceLockTest {
 
