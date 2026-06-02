@@ -13,4 +13,4 @@ spring:
 
 services:
   deal:
-    url: ""
+    url:

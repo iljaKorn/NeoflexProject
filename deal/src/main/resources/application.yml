@@ -13,9 +13,9 @@ spring:
     change-log: classpath:db/master.xml
     default-schema: public
   datasource:
-    url: ""
-    username: ""
-    password: ""
+    url:
+    username:
+    password:
     driver-class-name: org.postgresql.Driver
   kafka:
     topics:
@@ -25,7 +25,7 @@ spring:
       send-ses: send-ses
       credit-issued: credit-issued
       statement-denied: statement-denied
-    bootstrap-servers: ""
+    bootstrap-servers:
     producer:
       properties:
         acks: 1
@@ -37,4 +37,4 @@ springdoc:
 
 services:
   calculator:
-    url: ""
+    url:

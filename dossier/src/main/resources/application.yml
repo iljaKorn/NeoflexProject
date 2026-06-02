@@ -12,7 +12,7 @@ spring:
       send-ses: send-ses
       credit-issued: credit-issued
       statement-denied: statement-denied
-    bootstrap-servers: ""
+    bootstrap-servers:
   mail:
     host: smtp.yandex.ru
     port: 465
@@ -28,12 +28,12 @@ spring:
 
 services:
   deal:
-    url: ""
+    url:
 
 app:
   email:
-    base-url: ""
+    base-url:
     paths:
-      send-documents: ""
-      sign-documents: ""
-      confirm-sign: ""
+      send-documents:
+      sign-documents:
+      confirm-sign:

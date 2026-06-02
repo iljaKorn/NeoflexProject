@@ -13,6 +13,6 @@ spring:
 
 services:
   deal:
-    url: ""
+    url:
   statement:
-    url: ""
+    url:
