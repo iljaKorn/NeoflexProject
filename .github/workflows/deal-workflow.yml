@@ -1,0 +1,66 @@
+name: deal-workflow.yml
+on:
+  push:
+    branches:
+      - master
+      - develop
+      - 'MVP-*'
+    paths:
+      - 'deal/**'
+  pull_request:
+    branches:
+      - master
+      - develop
+      - 'MVP-*'
+    paths:
+      - 'deal/**'
+
+jobs:
+  build-and-analyze:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: deal
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+          cache: 'maven'
+
+      - name: Build & Test
+        run: mvn clean verify -B
+
+      - name: SonarCloud Scan
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: |
+          mvn -B sonar:sonar \
+            -Dsonar.token=$SONAR_TOKEN \
+            -Dsonar.host.url=https://sonarcloud.io \
+            -Dsonar.projectKey=iljaKorn_NeoflexProject \
+            -Dsonar.moduleKey=deal-service \
+            -Dsonar.projectBaseDir=$GITHUB_WORKSPACE \
+            -Dsonar.sources=src/main/java \
+            -Dsonar.tests=src/test/java \
+            -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml \
+            -Dsonar.junit.reportPaths=target/surefire-reports
+
+      - name: Coveralls
+        uses: coverallsapp/github-action@v2
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          file: deal/target/site/jacoco/jacoco.xml
+          flag-name: deal-service
+
+      - name: Upload JAR
+        uses: actions/upload-artifact@v4
+        with:
+          name: deal-service-jar
+          path: deal/target/*.jar

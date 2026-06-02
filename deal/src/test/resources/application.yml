@@ -1,0 +1,16 @@
+services:
+  calculator:
+    url: http://localhost:9999
+spring:
+  datasource:
+    username: myuser
+    password: mypass
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+logging:
+  level:
+    org.hibernate.SQL: DEBUG

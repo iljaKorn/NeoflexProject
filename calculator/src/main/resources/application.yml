@@ -1,0 +1,19 @@
+server:
+  forward-headers-strategy: framework
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+    enabled: true
+
+spring:
+  application:
+    name: calculator
+
+bank:
+  rate: 15
+  insurance:
+    price: 100000
+    discount: 3.0
+  salary:
+    discount: 1.0

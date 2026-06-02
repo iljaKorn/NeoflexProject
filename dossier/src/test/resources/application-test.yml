@@ -1,0 +1,22 @@
+spring:
+  kafka:
+    topics:
+      finish-registration: finish-registration
+      create-documents: create-documents
+      send-documents: send-documents
+      send-ses: send-ses
+      credit-issued: credit-issued
+      statement-denied: statement-denied
+    bootstrap-servers: localhost:9092
+    consumer:
+      group-id: test-group
+services:
+  deal:
+    url: http://localhost:8081/deal
+app:
+  email:
+    base-url: http://localhost:8084
+    paths:
+      send-documents: /gateway/document/{statementId}/send
+      sign-documents: /gateway/document/{statementId}/sign
+      confirm-sign: /gateway/document/{statementId}/code

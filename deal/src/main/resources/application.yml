@@ -1,0 +1,40 @@
+server:
+  port: 8081
+  forward-headers-strategy: framework
+
+spring:
+  application:
+    name: deal
+  jpa:
+    hibernate:
+      ddl-auto: none
+  liquibase:
+    enabled: true
+    change-log: classpath:db/master.xml
+    default-schema: public
+  datasource:
+    url:
+    username:
+    password:
+    driver-class-name: org.postgresql.Driver
+  kafka:
+    topics:
+      finish-registration: finish-registration
+      create-documents: create-documents
+      send-documents: send-documents
+      send-ses: send-ses
+      credit-issued: credit-issued
+      statement-denied: statement-denied
+    bootstrap-servers:
+    producer:
+      properties:
+        acks: 1
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+    enabled: true
+
+services:
+  calculator:
+    url:
